@@ -28,10 +28,15 @@ This is a **template generator**. The `templates/` directory contains skeletons 
 
 ## Making Changes
 
-1. Read `TASKS.md` for the current implementation plan
+1. Read `docs/TASKS.md` for the current implementation plan
 2. Read `docs/block-contract.md` before creating or modifying blocks
 3. Run `bash scripts/selftest.sh all` before submitting a PR
 4. Use conventional commits: `feat(scope): message`, `fix(scope): message`
+
+## Direct Template Checks
+
+- Go (`templates/go`): `gofmt -l .`, `go vet ./...`, `go test ./...`
+- Rust (`templates/rust`): `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
 
 ## Placeholder System
 

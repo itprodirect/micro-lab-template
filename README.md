@@ -31,6 +31,19 @@ bash scripts/new-repo.sh --lang go --name my-go-project --org myorg
 bash scripts/new-repo.sh --lang rust --name my-repo --dry-run
 ```
 
+## Run checks
+
+```bash
+bash scripts/selftest.sh all      # canonical check: CI + local
+bash scripts/selftest.sh go       # Go template + generator (Go)
+bash scripts/selftest.sh rust     # Rust template + generator (Rust)
+```
+
+Direct template checks (without generator smoke tests):
+
+- `templates/go`: `gofmt -l .`, `go vet ./...`, `go test ./...`
+- `templates/rust`: `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
+
 ### Generator flags
 
 | Flag | Required | Default | Description |
@@ -65,6 +78,7 @@ Blocks are small, reusable, tested library modules that follow a strict [block c
 ## Validating the templates
 
 ```bash
-bash scripts/selftest.sh          # test everything
+bash scripts/selftest.sh all      # test everything
+bash scripts/selftest.sh go       # test Go template only
 bash scripts/selftest.sh rust     # test Rust template only
 ```

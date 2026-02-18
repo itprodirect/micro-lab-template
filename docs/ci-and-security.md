@@ -19,6 +19,7 @@ It contains two jobs:
 2. `selftest-windows`
 
 Both jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
+The Windows job uses `shell: bash` and explicitly invokes `bash` in the run step.
 
 ## What selftest currently enforces
 
