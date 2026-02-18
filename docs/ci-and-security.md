@@ -13,13 +13,12 @@ It runs on:
 - `push` to `master` and `main`
 - `pull_request` targeting `master` and `main`
 
-It contains three jobs:
+It contains two jobs:
 
-1. `test-templates` (matrix: `rust`, `go`)
-2. `selftest` (full run after matrix checks)
-3. `test-windows` (bash-based compatibility run on Windows)
+1. `selftest-linux`
+2. `selftest-windows`
 
-All jobs run `bash scripts/selftest.sh` (filtered or full) after installing Rust and Go toolchains.
+Both jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
 
 ## What selftest currently enforces
 
@@ -27,6 +26,7 @@ All jobs run `bash scripts/selftest.sh` (filtered or full) after installing Rust
 
 - Rust template: `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
 - Go template: `gofmt -l .`, `go vet ./...`, `go test ./...`
+- `all` mode delegates to `go` then `rust` and fails fast on the first failing sub-run
 - Generator smoke test for each language:
   - scaffold a repo with `scripts/new-repo.sh`
   - verify placeholders are removed
