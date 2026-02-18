@@ -3,6 +3,7 @@
 
 # Explicitly mark text files
 *.sh text eol=lf
+*.bash text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 *.md text eol=lf
@@ -16,9 +17,21 @@
 *.html text eol=lf
 *.css text eol=lf
 
+# Windows scripts should keep CRLF for native shells/editors
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
 # Mark binaries
 *.png binary
 *.jpg binary
+*.jpeg binary
 *.gif binary
+*.webp binary
 *.ico binary
 *.wasm binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.tgz binary
+*.pdf binary
