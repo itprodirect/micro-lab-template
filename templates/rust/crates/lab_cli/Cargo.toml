@@ -1,0 +1,8 @@
+[package]
+name = "lab_cli"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+blocks = { path = "../blocks" }
+tracing.workspace = true
