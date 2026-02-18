@@ -1,0 +1,30 @@
+# Secrets — never commit these
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*credentials*
+*secret*
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Language build artifacts
+target/
+bin/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+*.exe

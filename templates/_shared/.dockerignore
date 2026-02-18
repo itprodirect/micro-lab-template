@@ -1,0 +1,12 @@
+.git
+.github
+.env
+.env.*
+*.md
+target/
+bin/
+node_modules/
+__pycache__/
+dist/
+.vscode/
+.idea/
