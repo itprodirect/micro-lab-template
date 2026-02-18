@@ -36,3 +36,7 @@ indent_style = tab
 [*.sh]
 indent_style = space
 indent_size = 2
+
+[*.ps1]
+indent_style = space
+indent_size = 2

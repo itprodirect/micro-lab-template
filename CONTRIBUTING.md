@@ -30,7 +30,7 @@ This is a **template generator**. The `templates/` directory contains skeletons 
 
 1. Read `TASKS.md` for the current implementation plan
 2. Read `docs/block-contract.md` before creating or modifying blocks
-3. Run `bash scripts/selftest.sh` before submitting a PR
+3. Run `bash scripts/selftest.sh all` before submitting a PR
 4. Use conventional commits: `feat(scope): message`, `fix(scope): message`
 
 ## Placeholder System
@@ -40,5 +40,11 @@ Files in `templates/` use placeholders like `__REPO_NAME__`, `__ORG__`, etc. See
 ## PR Conventions
 
 - Keep PRs focused on one phase or one logical change
-- Ensure selftest passes
+- Ensure `bash scripts/selftest.sh all` passes
 - Follow the block contract for any new blocks
+
+## PR Checklist
+
+- [ ] `bash scripts/selftest.sh all` passes locally
+- [ ] Template placeholders are still used where required (`__REPO_NAME__`, `__ORG__`, etc.)
+- [ ] Changes are scoped and documented if behavior changed

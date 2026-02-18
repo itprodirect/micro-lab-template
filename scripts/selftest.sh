@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Selftest: validate templates and the generator.
-# Usage: bash scripts/selftest.sh [rust|go]
+# Usage: bash scripts/selftest.sh [rust|go|all]
 
 set -euo pipefail
 
@@ -11,6 +11,15 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/_lib.sh"
 
 LANG_FILTER="${1:-all}"
+
+if [[ "$LANG_FILTER" == "all" ]]; then
+  info "micro-lab-template selftest"
+  info ""
+  bash "$SCRIPT_DIR/selftest.sh" go
+  bash "$SCRIPT_DIR/selftest.sh" rust
+  exit 0
+fi
+
 PASS_COUNT=0
 FAIL_COUNT=0
 CLEANUP_DIRS=()
@@ -169,12 +178,6 @@ case "$LANG_FILTER" in
     ;;
   go)
     test_go_template
-    test_generator go
-    ;;
-  all)
-    test_rust_template
-    test_go_template
-    test_generator rust
     test_generator go
     ;;
   *)
