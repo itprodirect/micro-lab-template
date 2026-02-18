@@ -7,6 +7,8 @@
 *.p12
 *credentials*
 *secret*
+.venv
+venv/
 
 # Generator output
 out/
