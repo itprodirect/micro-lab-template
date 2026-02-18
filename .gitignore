@@ -33,3 +33,6 @@ __pycache__/
 node_modules/
 dist/
 *.exe
+
+# Local AI tool metadata
+.claude/
