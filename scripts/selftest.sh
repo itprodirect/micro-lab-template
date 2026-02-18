@@ -34,7 +34,7 @@ fail() {
   FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
-# ── Template checks ──────────────────────────────────────────────────
+# -- Template checks --------------------------------------------------------
 
 test_rust_template() {
   info "=== Testing Rust template ==="
@@ -69,7 +69,7 @@ test_rust_template() {
 }
 
 test_go_template() {
-  info "=== Testing Go template (format check only — template has placeholders) ==="
+  info "=== Testing Go template ==="
 
   local tpl="$REPO_ROOT/templates/go"
 
@@ -78,7 +78,7 @@ test_go_template() {
     return
   fi
 
-  # Format check (Go files can be checked even with placeholder import paths)
+  # Format check
   local unformatted
   unformatted="$(cd "$tpl" && gofmt -l .)"
   if [[ -z "$unformatted" ]]; then
@@ -86,9 +86,23 @@ test_go_template() {
   else
     fail "go: gofmt (unformatted: $unformatted)"
   fi
+
+  # Lint check
+  if (cd "$tpl" && go vet ./...) >/dev/null 2>&1; then
+    pass "go: go vet"
+  else
+    fail "go: go vet"
+  fi
+
+  # Tests
+  if (cd "$tpl" && go test ./...) >/dev/null 2>&1; then
+    pass "go: go test"
+  else
+    fail "go: go test"
+  fi
 }
 
-# ── Generator integration test ───────────────────────────────────────
+# -- Generator integration test --------------------------------------------
 
 test_generator() {
   local lang="$1"
@@ -143,7 +157,7 @@ test_generator() {
   esac
 }
 
-# ── Main ──────────────────────────────────────────────────────────────
+# -- Main ------------------------------------------------------------------
 
 info "micro-lab-template selftest"
 info ""
