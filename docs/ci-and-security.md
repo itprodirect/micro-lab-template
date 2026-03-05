@@ -1,5 +1,6 @@
 # CI and Security
 
+For canonical workflow and branch policy, see `docs/canonical.md`.
 This document describes the CI and security defaults that are currently implemented in `micro-lab-template`.
 
 ## Current CI in this repository
