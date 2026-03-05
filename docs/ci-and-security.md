@@ -5,9 +5,10 @@ This document describes the CI and security defaults that are currently implemen
 
 ## Current CI in this repository
 
-The template repo uses one workflow file:
+The template repo uses two workflow files:
 
 - `.github/workflows/ci.yml`
+- `.github/workflows/dependabot-automerge.yml`
 
 It runs on:
 
@@ -23,6 +24,7 @@ It contains three jobs:
 `hygiene-linux` runs LF line-ending checks (`scripts/check-line-endings.sh`) and `shellcheck` on `scripts/*.sh`.
 Both selftest jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
 The Windows selftest job uses `shell: bash` and explicitly invokes `bash` in the run step.
+`dependabot-automerge` merges eligible Dependabot GitHub Actions PRs only after CI succeeds.
 
 ## What selftest currently enforces
 

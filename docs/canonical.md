@@ -28,6 +28,13 @@ Direct template checks (when you need language-specific debugging):
 - CI still listens to both `master` and `main` for compatibility during transition periods
 - New work should target `master`
 
+## Dependabot Auto-Merge Policy
+
+- Workflow: `.github/workflows/dependabot-automerge.yml`
+- Trigger: successful completion of the `CI` workflow for pull requests
+- Scope: only Dependabot PRs for `github-actions` that modify `.github/workflows/*`
+- Merge strategy: squash
+
 ## Update Rule
 
 If workflow behavior changes, update these files in the same PR:
