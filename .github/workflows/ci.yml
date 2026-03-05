@@ -10,6 +10,25 @@ permissions:
   contents: read
 
 jobs:
+  hygiene-linux:
+    name: "Hygiene (Linux)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Check LF line endings
+        run: bash scripts/check-line-endings.sh
+
+      - name: Ensure shellcheck is available
+        run: |
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+          fi
+
+      - name: Shellcheck scripts
+        run: shellcheck scripts/*.sh
+
   selftest-linux:
     name: "Selftest (Linux)"
     runs-on: ubuntu-latest
