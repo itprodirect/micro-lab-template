@@ -14,13 +14,15 @@ It runs on:
 - `push` to `master` and `main`
 - `pull_request` targeting `master` and `main`
 
-It contains two jobs:
+It contains three jobs:
 
-1. `selftest-linux`
-2. `selftest-windows`
+1. `hygiene-linux`
+2. `selftest-linux`
+3. `selftest-windows`
 
-Both jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
-The Windows job uses `shell: bash` and explicitly invokes `bash` in the run step.
+`hygiene-linux` runs LF line-ending checks (`scripts/check-line-endings.sh`) and `shellcheck` on `scripts/*.sh`.
+Both selftest jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
+The Windows selftest job uses `shell: bash` and explicitly invokes `bash` in the run step.
 
 ## What selftest currently enforces
 
