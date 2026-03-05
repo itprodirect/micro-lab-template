@@ -27,7 +27,7 @@ jobs:
           fi
 
       - name: Shellcheck scripts
-        run: shellcheck scripts/*.sh
+        run: shellcheck -x scripts/*.sh
 
   selftest-linux:
     name: "Selftest (Linux)"
