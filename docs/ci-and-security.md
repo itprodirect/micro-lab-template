@@ -1,25 +1,30 @@
 # CI and Security
 
+For canonical workflow and branch policy, see `docs/canonical.md`.
 This document describes the CI and security defaults that are currently implemented in `micro-lab-template`.
 
 ## Current CI in this repository
 
-The template repo uses one workflow file:
+The template repo uses two workflow files:
 
 - `.github/workflows/ci.yml`
+- `.github/workflows/dependabot-automerge.yml`
 
 It runs on:
 
 - `push` to `master` and `main`
 - `pull_request` targeting `master` and `main`
 
-It contains two jobs:
+It contains three jobs:
 
-1. `selftest-linux`
-2. `selftest-windows`
+1. `hygiene-linux`
+2. `selftest-linux`
+3. `selftest-windows`
 
-Both jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
-The Windows job uses `shell: bash` and explicitly invokes `bash` in the run step.
+`hygiene-linux` runs LF line-ending checks (`scripts/check-line-endings.sh`) and `shellcheck` on `scripts/*.sh`.
+Both selftest jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
+The Windows selftest job uses `shell: bash` and explicitly invokes `bash` in the run step.
+`dependabot-automerge` merges eligible Dependabot GitHub Actions PRs only after CI succeeds.
 
 ## What selftest currently enforces
 

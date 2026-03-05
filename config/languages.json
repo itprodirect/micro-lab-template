@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "languages": [
+    {
+      "id": "go",
+      "template_dir": "templates/go",
+      "toolchains": ["go"],
+      "commands": {
+        "format_check": "gofmt -l .",
+        "lint": "go vet ./...",
+        "test": "go test ./...",
+        "run": "go run ./cmd/lab-cli"
+      }
+    },
+    {
+      "id": "rust",
+      "template_dir": "templates/rust",
+      "toolchains": ["cargo"],
+      "commands": {
+        "format_check": "cargo fmt --all -- --check",
+        "lint": "cargo clippy -- -D warnings",
+        "test": "cargo test --workspace",
+        "run": "cargo run -p lab_cli"
+      }
+    }
+  ]
+}

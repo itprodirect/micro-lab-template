@@ -1,0 +1,103 @@
+name: Dependabot Auto-Merge
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    name: "Automerge Dependabot GitHub Actions updates"
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge eligible Dependabot PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          EVENT_PATH: ${{ github.event_path }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+import json
+import os
+import subprocess
+import sys
+
+repo = os.environ["REPO"]
+event_path = os.environ["EVENT_PATH"]
+
+with open(event_path, "r", encoding="utf-8") as f:
+    event = json.load(f)
+
+pull_requests = event.get("workflow_run", {}).get("pull_requests", [])
+if not pull_requests:
+    print("No pull request is associated with this CI run. Skipping.")
+    sys.exit(0)
+
+for pr_ref in pull_requests:
+    number = pr_ref["number"]
+    raw = subprocess.check_output(
+        [
+            "gh",
+            "pr",
+            "view",
+            str(number),
+            "--repo",
+            repo,
+            "--json",
+            "number,state,isDraft,author,baseRefName,headRefName,files",
+        ],
+        text=True,
+    )
+    pr = json.loads(raw)
+
+    state = pr.get("state")
+    is_draft = pr.get("isDraft", False)
+    author = (pr.get("author") or {}).get("login")
+    base_ref = pr.get("baseRefName", "")
+    head_ref = pr.get("headRefName", "")
+    changed_files = [f.get("path", "") for f in pr.get("files", [])]
+
+    if state != "OPEN":
+        print(f"PR #{number} is not open (state={state}). Skipping.")
+        continue
+    if is_draft:
+        print(f"PR #{number} is draft. Skipping.")
+        continue
+    if author != "dependabot[bot]":
+        print(f"PR #{number} author is {author}. Skipping.")
+        continue
+    if base_ref not in ("master", "main"):
+        print(f"PR #{number} targets base {base_ref}. Skipping.")
+        continue
+    if not head_ref.startswith("dependabot/github_actions/"):
+        print(f"PR #{number} head ref {head_ref} is not a github-actions Dependabot branch. Skipping.")
+        continue
+    if not changed_files:
+        print(f"PR #{number} has no listed changed files. Skipping.")
+        continue
+
+    out_of_scope = [p for p in changed_files if not p.startswith(".github/workflows/")]
+    if out_of_scope:
+        print(f"PR #{number} touches files outside .github/workflows/: {out_of_scope}. Skipping.")
+        continue
+
+    print(f"Merging PR #{number} ({head_ref}) with squash strategy.")
+    subprocess.run(
+        [
+            "gh",
+            "pr",
+            "merge",
+            str(number),
+            "--repo",
+            repo,
+            "--squash",
+        ],
+        check=True,
+    )
+          PY
