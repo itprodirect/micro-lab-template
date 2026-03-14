@@ -44,6 +44,14 @@ fail() {
   FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
+validate_language_manifest() {
+  if bash "$SCRIPT_DIR/validate-language-config.sh" >/dev/null 2>&1; then
+    pass "manifest: config/languages.json valid"
+  else
+    fail "manifest: language manifest validation failed"
+  fi
+}
+
 # -- Template checks --------------------------------------------------------
 
 test_rust_template() {
@@ -178,10 +186,12 @@ info ""
 
 case "$LANG_FILTER" in
   rust)
+    validate_language_manifest
     test_rust_template
     test_generator rust
     ;;
   go)
+    validate_language_manifest
     test_go_template
     test_generator go
     ;;
