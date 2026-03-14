@@ -28,6 +28,12 @@ Direct template checks (when you need language-specific debugging):
 - CI still listens to both `master` and `main` for compatibility during transition periods
 - New work should target `master`
 
+## Planning Source of Truth
+
+- Active improvement plan: `docs/v2-roadmap.md`
+- Historical implementation checklist: `docs/TASKS.md`
+- `docs/TASKS.md` is reference material, not the day-to-day execution source for new work
+
 ## Dependabot Auto-Merge Policy
 
 - Workflow: `.github/workflows/dependabot-automerge.yml`

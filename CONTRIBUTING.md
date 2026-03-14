@@ -15,10 +15,10 @@ Ensure you have the toolchains for the templates you want to work on:
 
 This is a **template generator**. The `templates/` directory contains skeletons that `scripts/new-repo.sh` copies, merges, and personalizes into new repos.
 
-- `templates/_shared/` — files every generated repo gets (any language)
-- `templates/<lang>/` — language-specific template files
-- `scripts/new-repo.sh` — the generator (merges _shared + lang, replaces placeholders)
-- `scripts/selftest.sh` — validates all templates and the generator
+- `templates/_shared/` - files every generated repo gets (any language)
+- `templates/<lang>/` - language-specific template files
+- `scripts/new-repo.sh` - the generator (merges _shared + lang, replaces placeholders)
+- `scripts/selftest.sh` - validates all templates and the generator
 
 ## Adding a Block vs. a Lab
 
@@ -28,10 +28,13 @@ This is a **template generator**. The `templates/` directory contains skeletons 
 
 ## Making Changes
 
-1. Read `docs/TASKS.md` for the current implementation plan
-2. Read `docs/block-contract.md` before creating or modifying blocks
-3. Run `bash scripts/selftest.sh all` before submitting a PR
-4. Use conventional commits: `feat(scope): message`, `fix(scope): message`
+1. Read `docs/canonical.md` for the current workflow, CI source of truth, and branch policy.
+2. Read `docs/v2-roadmap.md` for the active improvement plan.
+3. Read `docs/block-contract.md` before creating or modifying blocks.
+4. Run `bash scripts/selftest.sh all` before submitting a PR.
+5. Use conventional commits: `feat(scope): message`, `fix(scope): message`.
+
+`docs/TASKS.md` is kept as the original implementation checklist. Do not treat it as the active roadmap for day-to-day work.
 
 ## Direct Template Checks
 
@@ -44,9 +47,9 @@ Files in `templates/` use placeholders like `__REPO_NAME__`, `__ORG__`, etc. See
 
 ## PR Conventions
 
-- Keep PRs focused on one phase or one logical change
-- Ensure `bash scripts/selftest.sh all` passes
-- Follow the block contract for any new blocks
+- Keep PRs focused on one logical change.
+- Ensure `bash scripts/selftest.sh all` passes.
+- Follow the block contract for any new blocks.
 
 ## PR Checklist
 

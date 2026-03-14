@@ -1,4 +1,4 @@
-# AGENTS.md — How AI Agents Operate in This Repo
+# AGENTS.md - How AI Agents Operate in This Repo
 
 > This file tells Claude Code, Codex, and any other AI agent how to work in `micro-lab-template`. Read this before touching any file.
 
@@ -12,11 +12,12 @@ You are a senior engineer implementing a GitHub template repository and repo gen
 
 ## Before you write any code
 
-1. Read `TASKS.md` — it defines the implementation order. Do not skip phases.
-2. Read `docs/block-contract.md` — every block you create must follow this contract.
-3. Read `docs/structure.md` — every file you create must go in the right place.
-4. Read `docs/principles.md` — when in doubt, apply these principles.
-5. Read `docs/ci-and-security.md` — CI and security defaults are non-negotiable.
+1. Read `docs/canonical.md` - it defines the current day-to-day workflow, CI source of truth, and branch policy.
+2. Read `docs/v2-roadmap.md` - it defines the active improvement plan.
+3. Read `docs/block-contract.md` - every block you create must follow this contract.
+4. Read `docs/structure.md` - every file you create must go in the right place.
+5. Read `docs/principles.md` - when in doubt, apply these principles.
+6. Read `docs/ci-and-security.md` - CI and security defaults are non-negotiable.
 
 ---
 
@@ -24,7 +25,7 @@ You are a senior engineer implementing a GitHub template repository and repo gen
 
 ### General
 
-- **Follow `TASKS.md` in order.** Do not jump ahead. Each phase depends on the previous one.
+- **Follow `docs/canonical.md` for current workflow and `docs/v2-roadmap.md` for active roadmap work.** Do not revive stale checklist items from `docs/TASKS.md` without approval.
 - **Check your work.** After creating files, run the appropriate lint/test commands. Do not mark a task done until the quality gates pass.
 - **Use the placeholder system.** Any file in `templates/` that contains a repo name, org name, year, or module path MUST use the placeholders defined in `docs/structure.md`. Hardcoding values defeats the purpose of a generator.
 - **No `unwrap()`, no bare `panic!`, no untyped exceptions in block code.** Blocks must return typed errors. Labs may use `unwrap()` sparingly in `main()` if the error is immediately logged.
@@ -64,7 +65,7 @@ You are a senior engineer implementing a GitHub template repository and repo gen
 - **Minimal permissions.** Every workflow uses `permissions: { contents: read }` unless it explicitly needs more.
 - **Pin actions by SHA.** `actions/checkout@<sha> # v4.2.2`, not `actions/checkout@v4`.
 - **No secrets in templates.** Generated repos must work with zero secrets configured. Secrets are added manually by repo owners.
-- **Fail fast is off for matrix builds.** `fail-fast: false` so all languages get tested even if one fails.
+- **For matrix builds, fail fast is off.** Use `fail-fast: false` so all languages get tested even if one fails.
 
 ---
 
@@ -83,17 +84,17 @@ You are a senior engineer implementing a GitHub template repository and repo gen
 ## What NOT to do
 
 - **Do not add frameworks.** No Express, no Actix-web, no FastAPI, no Next.js. Templates provide building blocks, not application frameworks. Labs can use them; blocks cannot depend on them.
-- **Do not add databases.** Blocks are stateless libraries. If a future block needs data persistence, it takes a connection/client as a parameter — it does not create one.
+- **Do not add databases.** Blocks are stateless libraries. If a future block needs data persistence, it takes a connection/client as a parameter - it does not create one.
 - **Do not add authentication.** Auth is a lab-level concern, not a block-level concern (with the exception of repos specifically built for auth, like `go-api-blocks`).
 - **Do not create monorepo tooling.** No Nx, no Turborepo, no Lerna. The workspace features of each language's build tool (`cargo workspace`, Go modules, Python packages, TS project references) are sufficient.
 - **Do not optimize prematurely.** The goal is working, tested, well-structured code. Performance optimization is a future concern.
-- **Do not add features not in `TASKS.md`.** If you think something should be added, document it in `SESSION_LOG.md` as a suggestion. Do not implement it without approval.
+- **Do not add features outside the active roadmap or explicit user request.** If you think something should be added, document it in `SESSION_LOG.md` as a suggestion. Do not implement it without approval.
 
 ---
 
 ## Communication
 
-- When you complete a phase, summarize what was done and what the next phase requires.
+- When you complete a meaningful slice, summarize what was done and what the next slice requires.
 - If a quality gate fails, show the error and your proposed fix before applying it.
 - If you encounter a decision that `docs/` doesn't cover, state the options and your recommendation before proceeding.
 - Log non-obvious decisions and any friction encountered in `SESSION_LOG.md`.
