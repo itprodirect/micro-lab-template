@@ -15,9 +15,10 @@ LANG_FILTER="${1:-all}"
 if [[ "$LANG_FILTER" == "all" ]]; then
   info "micro-lab-template selftest"
   info ""
-  bash "$SCRIPT_DIR/selftest.sh" go
-  bash "$SCRIPT_DIR/selftest.sh" rust
-  exit 0
+  overall_status=0
+  bash "$SCRIPT_DIR/selftest.sh" go || overall_status=1
+  bash "$SCRIPT_DIR/selftest.sh" rust || overall_status=1
+  exit "$overall_status"
 fi
 
 PASS_COUNT=0
@@ -51,7 +52,7 @@ test_rust_template() {
   local tpl="$REPO_ROOT/templates/rust"
 
   if ! command -v cargo >/dev/null 2>&1; then
-    warn "cargo not found, skipping Rust template tests"
+    fail "rust: cargo not found on PATH"
     return
   fi
 
@@ -83,7 +84,7 @@ test_go_template() {
   local tpl="$REPO_ROOT/templates/go"
 
   if ! command -v go >/dev/null 2>&1; then
-    warn "go not found, skipping Go template tests"
+    fail "go: go not found on PATH"
     return
   fi
 
@@ -152,6 +153,8 @@ test_generator() {
         else
           fail "generator(rust): cargo test failed"
         fi
+      else
+        fail "generator(rust): cargo not found on PATH"
       fi
       ;;
     go)
@@ -161,6 +164,8 @@ test_generator() {
         else
           fail "generator(go): go test failed"
         fi
+      else
+        fail "generator(go): go not found on PATH"
       fi
       ;;
   esac
