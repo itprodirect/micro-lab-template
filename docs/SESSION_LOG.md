@@ -4,7 +4,47 @@
 
 ---
 
-## Session 001 — Planning & Doc Prep
+## Session 002 - Workflow Hardening and Progress Tracking
+
+**Date:** 2026-03-13
+**Participants:** Human, Codex
+**Tools:** Codex desktop, git, PowerShell
+
+### Goal
+
+Tighten the local workflow so frequent commits mean something, and make the current working plan easier to follow.
+
+### Decisions made
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| 1 | **`scripts/selftest.sh` now fails when required toolchains are missing.** | A green local check should mean real validation happened, not that Go or Rust was silently skipped. |
+| 2 | **Contributor and agent guidance now point to `docs/canonical.md` and `docs/v2-roadmap.md`.** | `docs/TASKS.md` is still useful as historical implementation context, but it is not the active day-to-day planning source. |
+| 3 | **Add a local hook installer instead of relying on convention alone.** | Frequent small commits are safer when the repo can install a repeatable pre-commit gate. |
+
+### Friction / open questions
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| Windows bash launcher (`C:\WINDOWS\System32\bash.exe`) is unreliable in this environment | Open | `bash scripts/selftest.sh all` ran successfully for validation, but direct invocations of other bash scripts intermittently failed with Windows launcher errors. |
+| `scripts/setup-hooks.sh` could not be runtime-tested end to end in this environment | Open | Static validation passed (`git diff --check` and staged diff review). The script logic is straightforward, but the local bash launcher prevented execution verification. |
+| Manifest validation is still not wired into the canonical checks | Open | Good next slice: call `scripts/validate-language-config.sh` from CI and/or `selftest`. |
+
+### What was built
+
+- Pushed `d1646e7` - `fix(selftest): fail when toolchains are missing`
+- Pushed `0d2a466` - `docs(workflow): point contributors to canonical guidance`
+- Pushed `905d0de` - `chore(dev): add pre-commit hook installer`
+
+### Next session
+
+1. Wire `config/languages.json` validation into the repo checks.
+2. Keep `SESSION_LOG.md` current as each slice lands, not just at the end of a larger effort.
+3. Consider a small changelog pass each time workflow behavior changes so status docs stay aligned.
+
+---
+
+## Session 001 - Planning & Doc Prep
 
 **Date:** 2025-02-17
 **Participants:** Nick (human), Claude Opus (planning), ChatGPT (planning)
@@ -35,20 +75,20 @@ Prepare the complete documentation pack for `micro-lab-template` so Claude Code 
 | Issue | Status | Notes |
 |-------|--------|-------|
 | Git Bash `sed -i` behavior differs from GNU/macOS | Open | Generator placeholder replacement needs portable sed patterns. Test on both. |
-| Go module path requires org+name before the repo exists | Open | Generator should use `github.com/__ORG__/__REPO_NAME__` as placeholder in `go.mod` — replaced at generation time. |
+| Go module path requires org+name before the repo exists | Open | Generator should use `github.com/__ORG__/__REPO_NAME__` as placeholder in `go.mod` - replaced at generation time. |
 | Python package naming (kebab vs underscore) | Resolved | Repo name is kebab-case (`my-python-repo`), Python package is underscored (`my_python_repo`). Generator handles conversion via `__PKG__` placeholder. |
 | Whether to pin Rust nightly vs stable | Resolved | Stable. Templates use `rust-toolchain.toml` pinning stable. Nightly features are not needed for config/logging/error blocks. |
 
 ### Docs produced this session
 
-- `docs/block-contract.md` — block contract (6 mandatory rules + 4 recommendations)
-- `docs/structure.md` — folder conventions + placeholder reference
-- `docs/ci-and-security.md` — CI architecture + security defaults
-- `docs/principles.md` — 10 design principles
-- `docs/claude-review.md` — full gap analysis from Claude
-- `TASKS.md` — ordered implementation checklist (10 phases)
-- `AGENTS.md` — rules for AI agents working in this repo
-- `SESSION_LOG.md` — this file
+- `docs/block-contract.md` - block contract (6 mandatory rules + 4 recommendations)
+- `docs/structure.md` - folder conventions + placeholder reference
+- `docs/ci-and-security.md` - CI architecture + security defaults
+- `docs/principles.md` - 10 design principles
+- `docs/claude-review.md` - full gap analysis from Claude
+- `TASKS.md` - ordered implementation checklist (10 phases)
+- `AGENTS.md` - rules for AI agents working in this repo
+- `SESSION_LOG.md` - this file
 
 ### Next session
 
@@ -58,7 +98,7 @@ Hand docs to Claude Code. Execute `TASKS.md` starting at Phase 1 (baseline files
 
 <!-- Template for new entries:
 
-## Session NNN — Title
+## Session NNN - Title
 
 **Date:** YYYY-MM-DD
 **Participants:**
