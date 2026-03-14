@@ -34,6 +34,8 @@ This is a **template generator**. The `templates/` directory contains skeletons 
 4. Run `bash scripts/selftest.sh all` before submitting a PR.
 5. Use conventional commits: `feat(scope): message`, `fix(scope): message`.
 
+Optional but recommended: run `bash scripts/setup-hooks.sh` once per clone to install a pre-commit hook that runs the canonical check locally.
+
 `docs/TASKS.md` is kept as the original implementation checklist. Do not treat it as the active roadmap for day-to-day work.
 
 ## Direct Template Checks
