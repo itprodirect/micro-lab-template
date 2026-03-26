@@ -17,6 +17,13 @@ lint:
 test:
     go test ./...
 
+# Check for known Go vulnerabilities
+vulncheck:
+    go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+# Run security checks
+security: vulncheck
+
 # Run the lab CLI
 run:
     go run ./cmd/lab-cli

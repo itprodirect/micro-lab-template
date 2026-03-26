@@ -16,6 +16,10 @@ __RUN_COMMAND__
 
 This repo includes `.github/workflows/ci.yml` with a minimal-permission GitHub Actions workflow that runs the standard checks for the generated language.
 
+## Security
+
+This repo also includes `.github/workflows/security.yml` for secret and vulnerability scanning, plus Dependabot updates for GitHub Actions, the generated language, and Docker base images.
+
 ## Structure
 
 - `__BLOCKS_DIR__/` — Reusable components ([block contract](https://github.com/__ORG__/micro-lab-template/blob/main/docs/block-contract.md))

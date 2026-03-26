@@ -5,9 +5,10 @@ This document describes the CI and security defaults that are currently implemen
 
 ## Current CI in this repository
 
-The template repo uses two workflow files:
+The template repo uses three workflow files:
 
 - `.github/workflows/ci.yml`
+- `.github/workflows/security.yml`
 - `.github/workflows/dependabot-automerge.yml`
 
 It runs on:
@@ -25,6 +26,7 @@ It contains three jobs:
 Both selftest jobs run `bash scripts/selftest.sh all` after installing Rust and Go toolchains.
 The Windows selftest job uses `shell: bash` and explicitly invokes `bash` in the run step.
 `dependabot-automerge` merges eligible Dependabot GitHub Actions PRs only after CI succeeds.
+`security.yml` runs Gitleaks, Trivy, `govulncheck` for the Go template, and `cargo audit` for the Rust template.
 
 ## What selftest currently enforces
 
@@ -49,7 +51,7 @@ permissions:
   contents: read
 ```
 
-2. GitHub Actions dependency updates via `.github/dependabot.yml` (weekly).
+2. GitHub Actions and template dependency updates via `.github/dependabot.yml` (weekly).
 
 3. Shared generated-repo safety defaults from `templates/_shared/`:
 
@@ -57,6 +59,8 @@ permissions:
 - `.gitignore` with secret-oriented patterns (`.env`, key files, etc.)
 - `.env.example` instead of committed `.env`
 - `.github/workflows/ci.yml` with language-conditional jobs and `contents: read` permissions
+- `.github/workflows/security.yml` with Gitleaks, Trivy, and language-conditional dependency auditing
+- Language-specific `.github/dependabot.yml` for GitHub Actions, the generated language, and Docker
 
 ## Notes
 

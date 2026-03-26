@@ -21,6 +21,9 @@ Instead:
 Every repo generated from this template includes:
 - `.gitignore` patterns that prevent committing secrets
 - `.env.example` (not `.env`) checked into version control
-- Dependabot configuration for dependency updates
+- Dependabot configuration for GitHub Actions, the generated language, and Docker base images
 - CI with minimal workflow permissions (`contents: read`)
+- Secret scanning with Gitleaks
+- Vulnerability and Dockerfile scanning with Trivy
+- Dependency auditing with `govulncheck` (Go) or `cargo audit` (Rust)
 - Docker containers running as non-root
