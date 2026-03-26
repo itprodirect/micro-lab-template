@@ -12,6 +12,10 @@ __TEST_COMMAND__
 __RUN_COMMAND__
 ```
 
+## CI
+
+This repo includes `.github/workflows/ci.yml` with a minimal-permission GitHub Actions workflow that runs the standard checks for the generated language.
+
 ## Structure
 
 - `__BLOCKS_DIR__/` — Reusable components ([block contract](https://github.com/__ORG__/micro-lab-template/blob/main/docs/block-contract.md))

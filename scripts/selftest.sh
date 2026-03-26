@@ -152,6 +152,20 @@ test_generator() {
     echo "$placeholder_matches" >&2
   fi
 
+  # Check generated CI workflow exists with minimal permissions
+  local ci_workflow="$out_dir/.github/workflows/ci.yml"
+  if [[ -f "$ci_workflow" ]]; then
+    pass "generator($lang): CI workflow present"
+  else
+    fail "generator($lang): CI workflow missing"
+  fi
+
+  if grep -q '^permissions:$' "$ci_workflow" && grep -q '^  contents: read$' "$ci_workflow"; then
+    pass "generator($lang): CI workflow uses minimal permissions"
+  else
+    fail "generator($lang): CI workflow permissions not minimal"
+  fi
+
   # Run language-specific tests in generated repo
   case "$lang" in
     rust)

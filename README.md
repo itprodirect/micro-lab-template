@@ -9,7 +9,7 @@ Each generated repo comes with:
 - **Logging block** — structured logging (JSON or pretty)
 - **Errors block** — typed error handling with context
 - **Lab CLI** — demonstrates composing all three blocks
-- **CI, security defaults, and docs** — out of the box
+- **CI, security defaults, and docs** — out of the box, including a generated GitHub Actions CI workflow
 
 ## Supported languages
 

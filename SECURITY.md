@@ -22,5 +22,5 @@ Every repo generated from this template includes:
 - `.gitignore` patterns that prevent committing secrets
 - `.env.example` (not `.env`) checked into version control
 - Dependabot configuration for dependency updates
-- CI with minimal permissions (`contents: read`)
+- CI with minimal workflow permissions (`contents: read`)
 - Docker containers running as non-root
