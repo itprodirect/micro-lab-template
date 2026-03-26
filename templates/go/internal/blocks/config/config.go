@@ -1,9 +1,10 @@
 // Package config loads application configuration from environment variables
-// with .env file fallback and sensible defaults.
+// with a local-development .env fallback and sensible defaults.
 package config
 
 import (
 	"os"
+	"strings"
 
 	blockerrors "github.com/__ORG__/__REPO_NAME__/internal/blocks/errors"
 	"github.com/joho/godotenv"
@@ -21,10 +22,10 @@ type Config struct {
 	AppName string
 }
 
-// Load reads config from environment variables, falling back to .env file, then defaults.
+// Load reads config from environment variables, optionally loading .env for local
+// development, then falling back to defaults.
 func Load() (*Config, error) {
-	// Best-effort .env loading — missing file is fine
-	_ = godotenv.Load()
+	loadDotEnvForLocalDev()
 
 	cfg := &Config{
 		AppEnv:   getEnvOrDefault("APP_ENV", "dev"),
@@ -44,6 +45,35 @@ func Load() (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func loadDotEnvForLocalDev() {
+	if appEnv, ok := os.LookupEnv("APP_ENV"); ok {
+		if isLocalAppEnv(appEnv) {
+			// Best-effort local-dev .env loading; production should use real env vars.
+			_ = godotenv.Load()
+		}
+		return
+	}
+
+	values, err := godotenv.Read()
+	if err != nil {
+		return
+	}
+
+	if isLocalAppEnv(values["APP_ENV"]) {
+		// Best-effort local-dev .env loading; production should use real env vars.
+		_ = godotenv.Load()
+	}
+}
+
+func isLocalAppEnv(appEnv string) bool {
+	switch strings.ToLower(strings.TrimSpace(appEnv)) {
+	case "dev", "development", "local", "test":
+		return true
+	default:
+		return false
+	}
 }
 
 func getEnvOrDefault(key, fallback string) string {
