@@ -5,7 +5,7 @@ A GitHub template repository and generator for creating multi-language **micro-l
 ## What it generates
 
 Each generated repo comes with:
-- **Config block** — loads from env vars → `.env` → defaults
+- **Config block** — loads from env vars → local-dev `.env` → defaults
 - **Logging block** — structured logging (JSON or pretty)
 - **Errors block** — typed error handling with context
 - **Lab CLI** — demonstrates composing all three blocks
