@@ -166,9 +166,48 @@ test_generator() {
     fail "generator($lang): CI workflow permissions not minimal"
   fi
 
+  # Check generated security workflow exists with expected scanners
+  local security_workflow="$out_dir/.github/workflows/security.yml"
+  if [[ -f "$security_workflow" ]]; then
+    pass "generator($lang): security workflow present"
+  else
+    fail "generator($lang): security workflow missing"
+  fi
+
+  if grep -q '^permissions:$' "$security_workflow" \
+    && grep -q '^  contents: read$' "$security_workflow" \
+    && grep -q 'gitleaks' "$security_workflow" \
+    && grep -q 'trivy' "$security_workflow"; then
+    pass "generator($lang): security workflow baseline present"
+  else
+    fail "generator($lang): security workflow baseline missing expected scanners"
+  fi
+
+  # Check generated Dependabot config exists with language-specific ecosystems
+  local dependabot_config="$out_dir/.github/dependabot.yml"
+  if [[ -f "$dependabot_config" ]]; then
+    pass "generator($lang): Dependabot config present"
+  else
+    fail "generator($lang): Dependabot config missing"
+  fi
+
+  if grep -q 'package-ecosystem: "github-actions"' "$dependabot_config" \
+    && grep -q 'package-ecosystem: "docker"' "$dependabot_config"; then
+    pass "generator($lang): Dependabot baseline present"
+  else
+    fail "generator($lang): Dependabot baseline missing expected ecosystems"
+  fi
+
   # Run language-specific tests in generated repo
   case "$lang" in
     rust)
+      if grep -q 'package-ecosystem: "cargo"' "$dependabot_config" \
+        && grep -q 'cargo audit' "$security_workflow"; then
+        pass "generator(rust): Rust security tooling present"
+      else
+        fail "generator(rust): Rust security tooling missing"
+      fi
+
       if command -v cargo >/dev/null 2>&1; then
         if (cd "$out_dir" && cargo test --workspace) >/dev/null 2>&1; then
           pass "generator(rust): cargo test passes"
@@ -180,6 +219,13 @@ test_generator() {
       fi
       ;;
     go)
+      if grep -q 'package-ecosystem: "gomod"' "$dependabot_config" \
+        && grep -q 'govulncheck' "$security_workflow"; then
+        pass "generator(go): Go security tooling present"
+      else
+        fail "generator(go): Go security tooling missing"
+      fi
+
       if command -v go >/dev/null 2>&1; then
         if (cd "$out_dir" && go test ./...) >/dev/null 2>&1; then
           pass "generator(go): go test passes"

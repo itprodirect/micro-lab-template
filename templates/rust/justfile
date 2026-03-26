@@ -17,6 +17,13 @@ lint:
 test:
     cargo test --workspace
 
+# Audit dependencies for known vulnerabilities (requires cargo-audit)
+audit:
+    cargo audit
+
+# Run security checks
+security: audit
+
 # Run the lab CLI
 run:
     cargo run -p lab_cli
