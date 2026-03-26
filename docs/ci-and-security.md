@@ -56,6 +56,7 @@ permissions:
 - `SECURITY.md`
 - `.gitignore` with secret-oriented patterns (`.env`, key files, etc.)
 - `.env.example` instead of committed `.env`
+- `.github/workflows/ci.yml` with language-conditional jobs and `contents: read` permissions
 
 ## Notes
 
