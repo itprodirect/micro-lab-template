@@ -119,7 +119,7 @@
 
 ### 4.1 — Module setup
 
-- [ ] `templates/go/go.mod` — module path `github.com/__ORG__/__REPO_NAME__`, Go 1.22+
+- [ ] `templates/go/go.mod` — module path `github.com/__ORG__/__REPO_NAME__`, Go 1.26+
 
 ### 4.2 — Blocks
 
