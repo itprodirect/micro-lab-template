@@ -69,6 +69,8 @@ Blocks are small, reusable, tested library modules that follow a strict [block c
 
 ## Docs
 
+- `docs/canonical.md` — current workflow and branch policy (`master`)
+- `docs/v2-roadmap.md` — active roadmap for ongoing work
 - [Block contract](docs/block-contract.md) — the 6 rules every block must follow
 - [Repo structure](docs/structure.md) — folder conventions and placeholder reference
 - [Design principles](docs/principles.md) — the philosophy behind this template

@@ -1,6 +1,8 @@
 # TASKS.md — Implementation Checklist
 
-> Claude Code / Codex: execute these tasks **in order**. Each phase must be complete and verified before starting the next. Check off items as you go. If a task is ambiguous, consult `docs/` before asking.
+This file is historical/reference material only. It is not the active roadmap for day-to-day work.
+
+> Historical reference only: this checklist is kept for archival context and should not be used as active execution guidance.
 
 ---
 

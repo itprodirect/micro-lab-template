@@ -25,7 +25,7 @@ You are a senior engineer implementing a GitHub template repository and repo gen
 
 ### General
 
-- **Follow `docs/canonical.md` for current workflow and `docs/v2-roadmap.md` for active roadmap work.** Do not revive stale checklist items from `docs/TASKS.md` without approval.
+- **Follow `docs/canonical.md` for current workflow and `docs/v2-roadmap.md` for active roadmap work.** Do not revive stale/historical checklist items from `docs/TASKS.md` (reference-only) without approval.
 - **Check your work.** After creating files, run the appropriate lint/test commands. Do not mark a task done until the quality gates pass.
 - **Use the placeholder system.** Any file in `templates/` that contains a repo name, org name, year, or module path MUST use the placeholders defined in `docs/structure.md`. Hardcoding values defeats the purpose of a generator.
 - **No `unwrap()`, no bare `panic!`, no untyped exceptions in block code.** Blocks must return typed errors. Labs may use `unwrap()` sparingly in `main()` if the error is immediately logged.

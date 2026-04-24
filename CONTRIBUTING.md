@@ -31,12 +31,14 @@ This is a **template generator**. The `templates/` directory contains skeletons 
 1. Read `docs/canonical.md` for the current workflow, CI source of truth, and branch policy.
 2. Read `docs/v2-roadmap.md` for the active improvement plan.
 3. Read `docs/block-contract.md` before creating or modifying blocks.
-4. Run `bash scripts/selftest.sh all` before submitting a PR.
-5. Use conventional commits: `feat(scope): message`, `fix(scope): message`.
+4. Target `master` for all new PRs unless a specific issue states otherwise.
+5. Read `docs/TASKS.md` only as historical/reference context.
+6. Run `bash scripts/selftest.sh all` before submitting a PR.
+7. Use conventional commits: `feat(scope): message`, `fix(scope): message`.
 
 Optional but recommended: run `bash scripts/setup-hooks.sh` once per clone to install a pre-commit hook that runs the canonical check locally.
 
-`docs/TASKS.md` is kept as the original implementation checklist. Do not treat it as the active roadmap for day-to-day work.
+`docs/TASKS.md` is historical/reference material. Do not treat it as the active roadmap for day-to-day work.
 
 ## Direct Template Checks
 

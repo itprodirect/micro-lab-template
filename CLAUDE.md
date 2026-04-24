@@ -10,7 +10,7 @@ Currently supports: **Rust** and **Go** templates. Python and TypeScript are def
 
 ## Key Docs (read before changing anything)
 
-- `TASKS.md` — ordered implementation checklist, execute in phase order
+- `TASKS.md` — historical/reference implementation checklist (ordered, but archival only)
 - `docs/block-contract.md` — the 6 mandatory rules every block must satisfy
 - `docs/structure.md` — folder conventions and placeholder reference
 - `docs/ci-and-security.md` — CI architecture and security defaults

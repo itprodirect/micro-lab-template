@@ -34,7 +34,7 @@ The Windows selftest job uses `shell: bash` and explicitly invokes `bash` in the
 
 - Rust template: `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
 - Go template: `gofmt -l .`, `go vet ./...`, `go test ./...`
-- `all` mode delegates to `go` then `rust` and fails fast on the first failing sub-run
+- `all` mode runs Go and Rust checks and reports all results
 - Generator smoke test for each language:
   - scaffold a repo with `scripts/new-repo.sh`
   - verify placeholders are removed
