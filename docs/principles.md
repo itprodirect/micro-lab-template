@@ -78,7 +78,7 @@ Claude Code and Codex are active participants in building, testing, and maintain
 
 **In practice:**
 - `AGENTS.md` tells AI agents how to behave in this repo
-- `TASKS.md` gives ordered, unambiguous implementation steps
+- `TASKS.md` is historical/reference implementation guidance, not active execution order
 - File structure is consistent and predictable
 - Block contract provides checkable rules, not vibes
 - Comments explain "why," not "what" (agents can read the code)

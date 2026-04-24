@@ -12,7 +12,7 @@ micro-lab-template/
 ├── README.md                    # What this is, how to use it
 ├── LICENSE                      # MIT
 ├── AGENTS.md                    # How AI agents should behave here
-├── TASKS.md                     # Ordered implementation checklist
+├── TASKS.md                     # Historical/reference implementation checklist
 ├── CONTRIBUTING.md              # How to contribute (for humans)
 ├── CHANGELOG.md                 # Template-level version history
 ├── SESSION_LOG.md               # Decisions, friction, learnings

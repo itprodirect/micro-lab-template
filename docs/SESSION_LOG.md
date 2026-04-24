@@ -86,13 +86,13 @@ Prepare the complete documentation pack for `micro-lab-template` so Claude Code 
 - `docs/ci-and-security.md` - CI architecture + security defaults
 - `docs/principles.md` - 10 design principles
 - `docs/claude-review.md` - full gap analysis from Claude
-- `TASKS.md` - ordered implementation checklist (10 phases)
+- `TASKS.md` (historical/reference implementation checklist, 10 phases)
 - `AGENTS.md` - rules for AI agents working in this repo
 - `SESSION_LOG.md` - this file
 
 ### Next session
 
-Hand docs to Claude Code. Execute `TASKS.md` starting at Phase 1 (baseline files). Target: Phase 4 (Go template complete) by end of session.
+Hand docs to Claude Code. Treat `TASKS.md` as historical/reference context only. Execute `TASKS.md` starting at Phase 1 (baseline files). Target: Phase 4 (Go template complete) by end of session.
 
 ---
 
