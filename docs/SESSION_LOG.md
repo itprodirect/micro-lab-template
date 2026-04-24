@@ -92,7 +92,7 @@ Prepare the complete documentation pack for `micro-lab-template` so Claude Code 
 
 ### Next session
 
-Hand docs to Claude Code. Treat `TASKS.md` as historical/reference context only. Execute `TASKS.md` starting at Phase 1 (baseline files). Target: Phase 4 (Go template complete) by end of session.
+Hand docs to Claude Code for next-session context. For current workflow and branch policy, use `docs/canonical.md`; for active roadmap scope, use `docs/v2-roadmap.md`. `docs/TASKS.md` remains historical/reference context only.
 
 ---
 
