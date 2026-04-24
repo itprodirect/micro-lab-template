@@ -38,11 +38,38 @@ USAGE
   exit "${1:-0}"
 }
 
+require_flag_value() {
+  local flag="$1"
+  local value="$2"
+
+  if [[ -z "$value" ]]; then
+    die "$flag requires a non-empty value"
+  fi
+  if [[ "$value" == -* ]]; then
+    die "$flag requires a value, got another flag: $value"
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --lang)   LANG="$2"; shift 2 ;;
-    --name)   NAME="$2"; shift 2 ;;
-    --org)    ORG="$2"; shift 2 ;;
+    --lang)
+      [[ $# -ge 2 ]] || die "--lang requires a value"
+      require_flag_value "--lang" "$2"
+      LANG="$2"
+      shift 2
+      ;;
+    --name)
+      [[ $# -ge 2 ]] || die "--name requires a value"
+      require_flag_value "--name" "$2"
+      NAME="$2"
+      shift 2
+      ;;
+    --org)
+      [[ $# -ge 2 ]] || die "--org requires a value"
+      require_flag_value "--org" "$2"
+      ORG="$2"
+      shift 2
+      ;;
     --dry-run) DRY_RUN=true; shift ;;
     --no-git) NO_GIT=true; shift ;;
     -h|--help) usage 0 ;;
