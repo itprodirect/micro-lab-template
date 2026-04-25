@@ -80,8 +80,11 @@ if isinstance(languages, list):
         if not isinstance(template_dir, str) or not template_dir.strip():
             errors.append(f"{prefix}.template_dir must be a non-empty string")
         else:
-            manifest_template_dirs.append(template_dir)
             template_path = repo_root / template_dir
+            normalized_template_dir = str(
+                template_path.resolve().relative_to(repo_root)
+            ).replace("\\", "/")
+            manifest_template_dirs.append(normalized_template_dir)
             if not template_path.is_dir():
                 errors.append(f"{prefix}.template_dir does not exist: {template_dir}")
 
