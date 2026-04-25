@@ -55,6 +55,7 @@ required_commands = {"format_check", "lint", "test", "run"}
 ids = set()
 
 if isinstance(languages, list):
+    manifest_template_dirs = []
     for idx, lang in enumerate(languages):
         prefix = f"languages[{idx}]"
 
@@ -80,6 +81,10 @@ if isinstance(languages, list):
             errors.append(f"{prefix}.template_dir must be a non-empty string")
         else:
             template_path = repo_root / template_dir
+            normalized_template_dir = str(
+                template_path.resolve().relative_to(repo_root)
+            ).replace("\\", "/")
+            manifest_template_dirs.append(normalized_template_dir)
             if not template_path.is_dir():
                 errors.append(f"{prefix}.template_dir does not exist: {template_dir}")
 
@@ -100,6 +105,16 @@ if isinstance(languages, list):
                 cmd_val = commands.get(cmd_key)
                 if cmd_key in commands and (not isinstance(cmd_val, str) or not cmd_val.strip()):
                     errors.append(f"{prefix}.commands.{cmd_key} must be a non-empty string")
+
+    # Ensure every language template directory is represented exactly once in the manifest.
+    template_root = repo_root / "templates"
+    if template_root.is_dir():
+        for template_dir in sorted(p.name for p in template_root.iterdir() if p.is_dir() and p.name != "_shared"):
+            manifest_refs = manifest_template_dirs.count(f"templates/{template_dir}")
+            if manifest_refs == 0:
+                errors.append(f"Template directory is unmanifested: templates/{template_dir}")
+            elif manifest_refs > 1:
+                errors.append(f"Template directory has multiple manifest entries: templates/{template_dir}")
 
 if errors:
     for err in errors:
