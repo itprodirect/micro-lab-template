@@ -10,6 +10,8 @@ Use this command for both local validation and CI parity:
 bash scripts/selftest.sh all
 ```
 
+This check includes Rust and Go template validation, generator smoke tests, and language manifest validation.
+
 Direct template checks (when you need language-specific debugging):
 
 - Go (`templates/go`): `gofmt -l .`, `go vet ./...`, `go test ./...`

@@ -6,6 +6,10 @@
 
 ## Template repo structure (this repo)
 
+Current supported language templates are `templates/go` and `templates/rust`.
+`templates/_shared` contains files copied into every generated repo and is intentionally excluded from language manifest coverage checks.
+`config/languages.json` is the current Rust/Go language manifest, and `scripts/validate-language-config.sh` verifies that each `templates/<lang>` directory has exactly one manifest entry.
+
 ```
 micro-lab-template/
 │
@@ -64,7 +68,9 @@ micro-lab-template/
 
 ## Generated repo structure (what `new-repo.sh` produces)
 
-Every generated repo follows the same shape, adapted to the language. Here are the four supported layouts:
+Every generated repo follows the same shape, adapted to the language.
+The currently supported generated layouts are Rust and Go.
+Python and TypeScript layouts are reference/planning material only until explicitly approved.
 
 ### Rust
 

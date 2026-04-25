@@ -91,6 +91,7 @@ Each phase of work should produce something that works independently. Don't wait
 
 **In practice:**
 - Rust and Go templates ship first
+- Python and TypeScript templates require explicit approval before work starts
 - Generator works with two languages before adding more
 - CI is green before adding complexity
 - Each phase has a clear "Definition of Done"

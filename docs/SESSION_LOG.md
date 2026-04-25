@@ -4,6 +4,58 @@
 
 ---
 
+## Session 003 - Spark Mini-Session Closeout
+
+**Date:** 2026-04-24
+**Participants:** Human, Codex Spark, Codex
+**Tools:** Codex desktop, git, GitHub PRs
+
+### Goal
+
+Record the completed Spark mini-session, sync current repo state after the merged work, and leave a clean next-session handoff.
+
+### Decisions made
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| 1 | **`docs/TASKS.md` stays historical/reference-only.** | Current work should follow `docs/canonical.md` for workflow and `docs/v2-roadmap.md` for roadmap scope, not old implementation phases. |
+| 2 | **Generator flag parsing now fails early for missing or flag-like values on `--lang`, `--name`, and `--org`.** | Value-bearing flags should produce clear errors instead of shifting arguments into surprising states. |
+| 3 | **Language manifest validation now checks both manifest entries and template directory coverage.** | `config/languages.json` should not drift from `templates/<lang>` directories, and `templates/_shared` remains excluded from language coverage. |
+| 4 | **Future manifest-driven generator work should wait until the validator behavior is stable.** | The validator is the guardrail for later manifest sourcing; generator metadata or manifest-backed `new-repo.sh` changes are better as a later focused issue. |
+
+### Friction / open questions
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| Manifest-backed generator behavior is still future work | Open | Consider a later Issue/PR for manifest generator metadata or `new-repo.sh` manifest sourcing after the validator has settled. |
+| Python and TypeScript templates remain out of scope | Open | Do not start Python or TypeScript template work unless explicitly approved. |
+| Stale task phases remain in `docs/TASKS.md` by design | Closed | They are historical/reference context only and should not drive active work. |
+
+### What was built
+
+- Merged PR #20 / Issue #15 - `docs: mark TASKS historical and fix current workflow drift`
+- Merged PR #21 / Issue #16 - `scripts: harden new-repo flag parsing errors`
+- Merged PR #22 / Issue #17 - `config: validate manifest coverage for template language dirs`
+
+Current repo state after these merges:
+
+- Target branch is `master`.
+- Canonical local and CI parity check is `bash scripts/selftest.sh all`.
+- Active roadmap is `docs/v2-roadmap.md`.
+- `docs/TASKS.md` is historical/reference-only.
+- `scripts/new-repo.sh` hardens value-bearing parsing for `--lang`, `--name`, and `--org`.
+- `scripts/validate-language-config.sh` validates required manifest structure, normalizes `template_dir` paths, and checks inverse coverage for `templates/<lang>` directories while excluding `templates/_shared`.
+- `scripts/selftest.sh` runs language manifest validation as part of each language selftest path.
+
+### Next session
+
+1. Keep work small and tied to `docs/v2-roadmap.md`.
+2. Good next small issues: changelog cleanup, a generated-repo smoke checklist, or manifest metadata planning.
+3. Consider manifest generator metadata or `new-repo.sh` manifest sourcing only after the current validator behavior is stable.
+4. Do not start Python/TypeScript template work or revive stale `docs/TASKS.md` phases without explicit approval.
+
+---
+
 ## Session 002 - Workflow Hardening and Progress Tracking
 
 **Date:** 2026-03-13
@@ -28,7 +80,7 @@ Tighten the local workflow so frequent commits mean something, and make the curr
 |-------|--------|-------|
 | Windows bash launcher (`C:\WINDOWS\System32\bash.exe`) is unreliable in this environment | Open | `bash scripts/selftest.sh all` ran successfully for validation, but direct invocations of other bash scripts intermittently failed with Windows launcher errors. |
 | `scripts/setup-hooks.sh` could not be runtime-tested end to end in this environment | Open | Static validation passed (`git diff --check` and staged diff review). The script logic is straightforward, but the local bash launcher prevented execution verification. |
-| Manifest validation is still not wired into the canonical checks | Open | Good next slice: call `scripts/validate-language-config.sh` from CI and/or `selftest`. |
+| Manifest validation is wired into selftest | Closed | PR #22 added manifest coverage validation and `scripts/selftest.sh` now invokes `scripts/validate-language-config.sh`. |
 
 ### What was built
 

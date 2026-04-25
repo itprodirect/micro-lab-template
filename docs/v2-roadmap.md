@@ -9,6 +9,16 @@
 3. Cross-OS hygiene is enforced automatically, not by convention.
 4. Dependency update flow is low-friction and safe.
 
+## Current Progress
+
+- Canonical workflow guidance now lives in `docs/canonical.md`; active roadmap work stays in this file.
+- `docs/TASKS.md` is historical/reference-only and should not drive new work.
+- `config/languages.json` exists for Rust and Go.
+- `scripts/validate-language-config.sh` validates manifest structure, normalizes `template_dir` paths, and checks inverse coverage for `templates/<lang>` directories while excluding `templates/_shared`.
+- `scripts/selftest.sh` runs language manifest validation as part of the canonical `bash scripts/selftest.sh all` path.
+- Generator manifest sourcing and manifest metadata planning are still future work; consider them only after the validator behavior is stable.
+- Python and TypeScript template work should not start unless explicitly approved.
+
 ## Non-goals
 
 1. No template rewrites.

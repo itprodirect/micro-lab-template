@@ -89,6 +89,8 @@ You are a senior engineer implementing a GitHub template repository and repo gen
 - **Do not create monorepo tooling.** No Nx, no Turborepo, no Lerna. The workspace features of each language's build tool (`cargo workspace`, Go modules, Python packages, TS project references) are sufficient.
 - **Do not optimize prematurely.** The goal is working, tested, well-structured code. Performance optimization is a future concern.
 - **Do not add features outside the active roadmap or explicit user request.** If you think something should be added, document it in `SESSION_LOG.md` as a suggestion. Do not implement it without approval.
+- **Do not start Python or TypeScript template work without explicit approval.** Current supported templates are Rust and Go.
+- **Do not revive stale `docs/TASKS.md` phases.** Use `docs/v2-roadmap.md` for active roadmap work and `docs/TASKS.md` only for historical/reference context.
 
 ---
 

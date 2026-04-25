@@ -54,6 +54,8 @@ Direct template checks (without generator smoke tests):
 | `--dry-run` | no | — | Preview output without creating files |
 | `--no-git` | no | — | Skip `git init` |
 
+The generator rejects missing, empty, or flag-like values for `--lang`, `--name`, and `--org`.
+
 ## How "blocks" work
 
 Blocks are small, reusable, tested library modules that follow a strict [block contract](docs/block-contract.md). Labs compose blocks into working applications. Dependencies flow one direction: labs → blocks.
@@ -71,6 +73,7 @@ Blocks are small, reusable, tested library modules that follow a strict [block c
 
 - `docs/canonical.md` — current workflow and branch policy (`master`)
 - `docs/v2-roadmap.md` — active roadmap for ongoing work
+- `docs/TASKS.md` — historical/reference-only implementation checklist
 - [Block contract](docs/block-contract.md) — the 6 rules every block must follow
 - [Repo structure](docs/structure.md) — folder conventions and placeholder reference
 - [Design principles](docs/principles.md) — the philosophy behind this template

@@ -32,6 +32,10 @@ The Windows selftest job uses `shell: bash` and explicitly invokes `bash` in the
 
 `scripts/selftest.sh` validates both templates and generator output:
 
+- Language manifest: `scripts/validate-language-config.sh`
+  - required top-level and per-language keys in `config/languages.json`
+  - referenced `template_dir` paths exist
+  - every `templates/<lang>` directory except `templates/_shared` has exactly one manifest entry
 - Rust template: `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
 - Go template: `gofmt -l .`, `go vet ./...`, `go test ./...`
 - `all` mode runs Go and Rust checks and reports all results
@@ -65,6 +69,4 @@ permissions:
 ## Notes
 
 - This repo currently validates Rust and Go templates only.
-- If additional language templates are introduced, update both:
-  - `scripts/selftest.sh`
-  - `.github/workflows/ci.yml`
+- If additional language templates are introduced, update `config/languages.json`, add the corresponding `templates/<lang>` directory, and update the explicit language dispatch in `scripts/selftest.sh` and `.github/workflows/ci.yml`.

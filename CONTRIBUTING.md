@@ -17,8 +17,10 @@ This is a **template generator**. The `templates/` directory contains skeletons 
 
 - `templates/_shared/` - files every generated repo gets (any language)
 - `templates/<lang>/` - language-specific template files
+- `config/languages.json` - supported language manifest for Rust and Go
 - `scripts/new-repo.sh` - the generator (merges _shared + lang, replaces placeholders)
-- `scripts/selftest.sh` - validates all templates and the generator
+- `scripts/validate-language-config.sh` - validates manifest structure and template directory coverage
+- `scripts/selftest.sh` - validates the manifest, templates, and generator
 
 ## Adding a Block vs. a Lab
 
