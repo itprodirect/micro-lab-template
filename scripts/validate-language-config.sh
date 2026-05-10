@@ -50,8 +50,9 @@ languages = payload.get("languages") if isinstance(payload, dict) else None
 if not isinstance(languages, list) or not languages:
     errors.append("`languages` must be a non-empty array")
 
-required_lang_keys = {"id", "template_dir", "toolchains", "commands"}
+required_lang_keys = {"id", "template_dir", "toolchains", "commands", "paths"}
 required_commands = {"format_check", "lint", "test", "run"}
+required_paths = {"blocks", "labs"}
 ids = set()
 
 if isinstance(languages, list):
@@ -77,6 +78,7 @@ if isinstance(languages, list):
             ids.add(lang_id)
 
         template_dir = lang.get("template_dir")
+        template_path = None
         if not isinstance(template_dir, str) or not template_dir.strip():
             errors.append(f"{prefix}.template_dir must be a non-empty string")
         else:
@@ -105,6 +107,23 @@ if isinstance(languages, list):
                 cmd_val = commands.get(cmd_key)
                 if cmd_key in commands and (not isinstance(cmd_val, str) or not cmd_val.strip()):
                     errors.append(f"{prefix}.commands.{cmd_key} must be a non-empty string")
+
+        paths = lang.get("paths")
+        if not isinstance(paths, dict):
+            errors.append(f"{prefix}.paths must be an object")
+        else:
+            missing_paths = sorted(required_paths - set(paths.keys()))
+            if missing_paths:
+                errors.append(f"{prefix}.paths missing keys: {missing_paths}")
+            for path_key in required_paths:
+                path_val = paths.get(path_key)
+                if path_key in paths and (not isinstance(path_val, str) or not path_val.strip()):
+                    errors.append(f"{prefix}.paths.{path_key} must be a non-empty string")
+                elif path_key in paths:
+                    if path_val.startswith("/") or "\\" in path_val or ".." in pathlib.PurePosixPath(path_val).parts:
+                        errors.append(f"{prefix}.paths.{path_key} must be a relative POSIX path")
+                    elif template_path is not None and not (template_path / path_val).is_dir():
+                        errors.append(f"{prefix}.paths.{path_key} does not exist under template_dir: {path_val}")
 
     # Ensure every language template directory is represented exactly once in the manifest.
     template_root = repo_root / "templates"

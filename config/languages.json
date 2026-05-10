@@ -10,6 +10,10 @@
         "lint": "go vet ./...",
         "test": "go test ./...",
         "run": "go run ./cmd/lab-cli"
+      },
+      "paths": {
+        "blocks": "internal/blocks",
+        "labs": "cmd/lab-cli"
       }
     },
     {
@@ -21,6 +25,10 @@
         "lint": "cargo clippy -- -D warnings",
         "test": "cargo test --workspace",
         "run": "cargo run -p lab_cli"
+      },
+      "paths": {
+        "blocks": "crates/blocks",
+        "labs": "crates/lab_cli"
       }
     }
   ]

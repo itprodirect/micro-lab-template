@@ -4,6 +4,33 @@ Running record of decisions, friction, and follow-up work for `micro-lab-templat
 
 Newest entries go at the top.
 
+## 2026-05-10 - Manifest-Driven Generator Placeholders
+
+### Goal
+
+Make `scripts/new-repo.sh` use `config/languages.json` for generated repo placeholder command and path values.
+
+### Decisions
+
+| Decision | Rationale |
+|---|---|
+| Added `paths.blocks` and `paths.labs` to each manifest language. | Existing `commands.test` and `commands.run` already covered command placeholders; block/lab directories needed manifest fields. |
+| `scripts/new-repo.sh` now reads supported languages, `template_dir`, test/run commands, and block/lab paths from the manifest. | Removes the remaining hardcoded Go/Rust placeholder population from the generator without rewriting generation flow. |
+| Manifest validation requires `paths.blocks` and `paths.labs` and checks that they exist under each language template. | Keeps generated repo path placeholders aligned with real template layout. |
+
+### Validation
+
+- `bash scripts/check-line-endings.sh` passed.
+- `bash scripts/validate-language-config.sh` passed.
+- `bash scripts/selftest.sh all` passed.
+- `bash scripts/selftest.sh go` passed.
+- `bash scripts/selftest.sh rust` passed.
+- `bash scripts/new-repo.sh --lang go --name codex-smoke-go --no-git --dry-run` passed.
+- `bash scripts/new-repo.sh --lang rust --name codex-smoke-rust --no-git --dry-run` passed.
+- `bash scripts/new-repo.sh --lang nope --name codex-smoke --dry-run` failed clearly.
+- `git diff --check` passed.
+- `git status --short` reviewed.
+
 ## 2026-05-10 - Selftest Robustness Polish
 
 ### Goal
