@@ -68,7 +68,7 @@
 
 - `config/languages.json` exists and is validated by `scripts/validate-language-config.sh`.
 - `scripts/selftest.sh` reads Go/Rust template format, lint, and test commands from the manifest.
-- `scripts/new-repo.sh` command placeholder population is not yet manifest-driven.
+- `scripts/new-repo.sh` reads supported languages, template paths, generated test/run commands, and block/lab paths from the manifest.
 
 ### Done Criteria
 

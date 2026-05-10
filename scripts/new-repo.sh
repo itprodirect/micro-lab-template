@@ -6,6 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CONFIG_PATH="$REPO_ROOT/config/languages.json"
 
 # shellcheck source=_lib.sh
 source "$SCRIPT_DIR/_lib.sh"
@@ -18,15 +19,20 @@ ORG="itprodirect"
 DRY_RUN=false
 NO_GIT=false
 TEMPLATE_VERSION=""
+TEMPLATE_DIR=""
+TEST_COMMAND=""
+RUN_COMMAND=""
+BLOCKS_DIR=""
+LABS_DIR=""
 
 # ── Parse args ────────────────────────────────────────────────────────
 
 usage() {
   cat <<USAGE
-Usage: bash scripts/new-repo.sh --lang <rust|go> --name <repo-name> [options]
+Usage: bash scripts/new-repo.sh --lang <language> --name <repo-name> [options]
 
 Required:
-  --lang <rust|go>     Language template to use
+  --lang <language>    Language template id from config/languages.json
   --name <name>        Repository name (kebab-case)
 
 Options:
@@ -36,6 +42,115 @@ Options:
   -h, --help           Show this help
 USAGE
   exit "${1:-0}"
+}
+
+manifest_python() {
+  if command -v python3 >/dev/null 2>&1; then
+    printf '%s\n' "python3"
+  elif command -v python >/dev/null 2>&1; then
+    printf '%s\n' "python"
+  else
+    die "python3 or python is required to read language manifest"
+  fi
+}
+
+manifest_query() {
+  local mode="$1"
+  local lang="${2:-}"
+  local python_bin
+
+  python_bin="$(manifest_python)"
+
+  "$python_bin" - "$CONFIG_PATH" "$mode" "$lang" <<'PY' | tr -d '\r'
+import json
+import sys
+
+config_path, mode, lang_id = sys.argv[1:4]
+
+with open(config_path, encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+languages = payload.get("languages", [])
+
+if mode == "languages":
+    for lang in languages:
+        print(lang["id"])
+    sys.exit(0)
+
+selected = next((lang for lang in languages if lang.get("id") == lang_id), None)
+if selected is None:
+    print(f"Language not found in manifest: {lang_id}", file=sys.stderr)
+    sys.exit(2)
+
+if mode == "language":
+    commands = selected["commands"]
+    paths = selected["paths"]
+    print(f"template_dir={selected['template_dir']}")
+    print(f"test_command={commands['test']}")
+    print(f"run_command={commands['run']}")
+    print(f"blocks_dir={paths['blocks']}")
+    print(f"labs_dir={paths['labs']}")
+else:
+    print(f"Unknown manifest query mode: {mode}", file=sys.stderr)
+    sys.exit(2)
+PY
+}
+
+manifest_languages() {
+  manifest_query languages
+}
+
+supported_languages_display() {
+  local language_list="$1"
+  local supported=""
+  local lang
+
+  while IFS= read -r lang; do
+    [[ -n "$lang" ]] || continue
+    if [[ -n "$supported" ]]; then
+      supported+=", "
+    fi
+    supported+="$lang"
+  done <<< "$language_list"
+
+  printf '%s' "$supported"
+}
+
+load_language_config() {
+  local lang="$1"
+  local manifest_output
+  local line
+  local key
+  local value
+
+  TEMPLATE_DIR=""
+  TEST_COMMAND=""
+  RUN_COMMAND=""
+  BLOCKS_DIR=""
+  LABS_DIR=""
+
+  manifest_output="$(manifest_query language "$lang")" || return 1
+
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    key="${line%%=*}"
+    value="${line#*=}"
+
+    case "$key" in
+      template_dir) TEMPLATE_DIR="$value" ;;
+      test_command) TEST_COMMAND="$value" ;;
+      run_command) RUN_COMMAND="$value" ;;
+      blocks_dir) BLOCKS_DIR="$value" ;;
+      labs_dir) LABS_DIR="$value" ;;
+      *) return 1 ;;
+    esac
+  done <<< "$manifest_output"
+
+  [[ -n "$TEMPLATE_DIR" \
+    && -n "$TEST_COMMAND" \
+    && -n "$RUN_COMMAND" \
+    && -n "$BLOCKS_DIR" \
+    && -n "$LABS_DIR" ]]
 }
 
 require_flag_value() {
@@ -79,13 +194,17 @@ done
 
 # ── Validate ──────────────────────────────────────────────────────────
 
-[[ -n "$LANG" ]] || die "--lang is required (rust, go)"
+language_list="$(manifest_languages)" || die "Unable to read supported languages from $CONFIG_PATH"
+supported_languages="$(supported_languages_display "$language_list")"
+
+[[ -n "$LANG" ]] || die "--lang is required ($supported_languages)"
 [[ -n "$NAME" ]] || die "--name is required"
 
-case "$LANG" in
-  rust|go) ;;
-  *) die "Unsupported language: $LANG (supported: rust, go)" ;;
-esac
+if ! grep -Fxq "$LANG" <<< "$language_list"; then
+  die "Unsupported language: $LANG (supported: $supported_languages)"
+fi
+
+load_language_config "$LANG" || die "Unable to read language configuration for: $LANG"
 
 # Validate name is kebab-case
 if [[ ! "$NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then
@@ -105,21 +224,6 @@ fi
 YEAR="$(date +%Y)"
 PKG="${NAME//-/_}"  # kebab-case to snake_case for Python
 MODULE_PATH="github.com/$ORG/$NAME"
-
-case "$LANG" in
-  rust)
-    TEST_COMMAND="cargo test --workspace"
-    RUN_COMMAND="cargo run -p lab_cli"
-    BLOCKS_DIR="crates/blocks"
-    LABS_DIR="crates/lab_cli"
-    ;;
-  go)
-    TEST_COMMAND="go test ./..."
-    RUN_COMMAND="go run ./cmd/lab-cli"
-    BLOCKS_DIR="internal/blocks"
-    LABS_DIR="cmd/lab-cli"
-    ;;
-esac
 
 # ── Output directory ──────────────────────────────────────────────────
 
@@ -150,8 +254,8 @@ if [[ "$DRY_RUN" == true ]]; then
   info "Files from templates/_shared/:"
   (cd "$REPO_ROOT/templates/_shared" && find . -type f | sort | sed 's|^\./|  |')
   info ""
-  info "Files from templates/$LANG/:"
-  (cd "$REPO_ROOT/templates/$LANG" && find . -type f | sort | sed 's|^\./|  |')
+  info "Files from $TEMPLATE_DIR/:"
+  (cd "$REPO_ROOT/$TEMPLATE_DIR" && find . -type f | sort | sed 's|^\./|  |')
   exit 0
 fi
 
@@ -171,7 +275,7 @@ cp -r "$REPO_ROOT/templates/_shared/." "$OUT_DIR/"
 # Step 2: Overlay language-specific files (overrides shared if same path)
 # Exclude build artifacts (target/, bin/, node_modules/, __pycache__/)
 info "Overlaying $LANG template files..."
-(cd "$REPO_ROOT/templates/$LANG" && find . -type f \
+(cd "$REPO_ROOT/$TEMPLATE_DIR" && find . -type f \
   ! -path './target/*' \
   ! -path './bin/*' \
   ! -path './node_modules/*' \

@@ -94,7 +94,7 @@ Do not hardcode values that should come from that placeholder system.
 
 - Commit messages use conventional commits: `feat(scope): msg`, `fix(scope): msg`, `docs(scope): msg`.
 - Repo script entry points are Bash with `#!/usr/bin/env bash` and `set -euo pipefail`.
-- `scripts/validate-language-config.sh` has a narrow embedded-Python exception for JSON manifest validation only; do not extend this exception to generators or templates.
+- Scripts that read or validate config/languages.json may use a narrow embedded-Python helper for JSON parsing. Do not add Python to generated repos or templates.
 - Line endings are LF everywhere.
 - Cross-platform support means Git Bash on Windows and GitHub Actions Ubuntu.
 - Do not add symlinks.
