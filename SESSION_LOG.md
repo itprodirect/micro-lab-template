@@ -4,6 +4,35 @@ Running record of decisions, friction, and follow-up work for `micro-lab-templat
 
 Newest entries go at the top.
 
+## 2026-05-10 - Session Wrap-Up
+
+### Shipped
+
+- Agent operations layer: root `AGENTS.md` is canonical, `CLAUDE.md` points to it, and generated repos receive agent guidance.
+- Hygiene guardrails: line-ending checks, template artifact checks, generator dry-run coverage, and Rust selftest build output outside `templates/rust/`.
+- Manifest-driven core: `config/languages.json` now drives selftest language checks and `new-repo.sh` generated command/path placeholders for Go and Rust.
+- Documentation alignment: README, canonical workflow, structure docs, roadmap, changelog, and session log now describe the manifest source of truth.
+
+### Deferred
+
+- Python and TypeScript templates remain out of scope.
+- A shared Bash manifest-reader helper is deferred until duplication becomes painful.
+- Full release/versioning policy and generated-repo upgrade guidance remain Phase 3 work.
+
+### Recommended Next Issues
+
+1. Define template release/versioning rules and changelog expectations.
+2. Document compatibility policy for supported Rust and Go toolchain versions.
+3. Add generated-repo upgrade guidance for safely cherry-picking template improvements.
+
+### Validation
+
+- `bash scripts/check-line-endings.sh` passed.
+- `bash scripts/validate-language-config.sh` passed.
+- `bash scripts/selftest.sh all` passed.
+- `git diff --check` passed.
+- `git status --short` reviewed.
+
 ## 2026-05-10 - Manifest-Driven Generator Placeholders
 
 ### Goal
