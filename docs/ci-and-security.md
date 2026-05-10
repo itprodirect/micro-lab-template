@@ -32,10 +32,13 @@ The Windows selftest job uses `shell: bash` and explicitly invokes `bash` in the
 
 `scripts/selftest.sh` validates both templates and generator output:
 
+- Language manifest: `config/languages.json` is checked with `scripts/validate-language-config.sh`
+- Template hygiene: language templates fail if build artifact directories are present (`target/`, `bin/`, `node_modules/`, `__pycache__/`, `dist/`, `build/`)
 - Rust template: `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
 - Go template: `gofmt -l .`, `go vet ./...`, `go test ./...`
 - `all` mode runs Go and Rust checks and reports all results
 - Generator smoke test for each language:
+  - run a dry-run with `scripts/new-repo.sh`
   - scaffold a repo with `scripts/new-repo.sh`
   - verify placeholders are removed
   - run language tests in the generated repo

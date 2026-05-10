@@ -10,6 +10,8 @@ Use this command for both local validation and CI parity:
 bash scripts/selftest.sh all
 ```
 
+The canonical selftest also validates `config/languages.json`, rejects build artifact directories inside language templates, and covers generator dry-runs before generated-repo smoke tests.
+
 Direct template checks (when you need language-specific debugging):
 
 - Go (`templates/go`): `gofmt -l .`, `go vet ./...`, `go test ./...`

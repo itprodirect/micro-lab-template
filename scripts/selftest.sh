@@ -52,12 +52,38 @@ validate_language_manifest() {
   fi
 }
 
+check_template_artifacts() {
+  local lang="$1"
+  local tpl="$REPO_ROOT/templates/$lang"
+  local artifact_matches
+
+  artifact_matches="$(find "$tpl" -type d \( \
+    -name target -o \
+    -name bin -o \
+    -name node_modules -o \
+    -name __pycache__ -o \
+    -name dist -o \
+    -name build \
+  \) -print 2>/dev/null || true)"
+
+  if [[ -z "$artifact_matches" ]]; then
+    pass "$lang: template has no build artifacts"
+  else
+    fail "$lang: build artifacts found in template"
+    echo "$artifact_matches" >&2
+  fi
+}
+
 # -- Template checks --------------------------------------------------------
 
 test_rust_template() {
   info "=== Testing Rust template ==="
 
   local tpl="$REPO_ROOT/templates/rust"
+  local cargo_target_dir="$REPO_ROOT/out/selftest-rust-target"
+
+  CLEANUP_DIRS+=("$cargo_target_dir")
+  mkdir -p "$REPO_ROOT/out"
 
   if ! command -v cargo >/dev/null 2>&1; then
     fail "rust: cargo not found on PATH"
@@ -72,14 +98,14 @@ test_rust_template() {
   fi
 
   # Lint check
-  if (cd "$tpl" && cargo clippy -- -D warnings) >/dev/null 2>&1; then
+  if (cd "$tpl" && CARGO_TARGET_DIR="$cargo_target_dir" cargo clippy -- -D warnings) >/dev/null 2>&1; then
     pass "rust: cargo clippy"
   else
     fail "rust: cargo clippy"
   fi
 
   # Tests
-  if (cd "$tpl" && cargo test --workspace) >/dev/null 2>&1; then
+  if (cd "$tpl" && CARGO_TARGET_DIR="$cargo_target_dir" cargo test --workspace) >/dev/null 2>&1; then
     pass "rust: cargo test"
   else
     fail "rust: cargo test"
@@ -121,6 +147,19 @@ test_go_template() {
 }
 
 # -- Generator integration test --------------------------------------------
+
+test_generator_dry_run() {
+  local lang="$1"
+  local name="selftest-dry-run-${lang}"
+
+  info "=== Testing generator dry-run: $lang ==="
+
+  if bash "$SCRIPT_DIR/new-repo.sh" --lang "$lang" --name "$name" --no-git --dry-run >/dev/null 2>&1; then
+    pass "generator($lang): dry-run completed"
+  else
+    fail "generator($lang): dry-run failed"
+  fi
+}
 
 test_generator() {
   local lang="$1"
@@ -247,12 +286,16 @@ info ""
 case "$LANG_FILTER" in
   rust)
     validate_language_manifest
+    check_template_artifacts rust
     test_rust_template
+    test_generator_dry_run rust
     test_generator rust
     ;;
   go)
     validate_language_manifest
+    check_template_artifacts go
     test_go_template
+    test_generator_dry_run go
     test_generator go
     ;;
   *)
