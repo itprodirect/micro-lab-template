@@ -45,6 +45,8 @@ Direct template checks (without generator smoke tests):
 - `templates/go`: `gofmt -l .`, `go vet ./...`, `go test ./...`
 - `templates/rust`: `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
 
+The canonical selftest also validates `config/languages.json`, rejects build artifact directories under language templates, and runs generator dry-run plus generated-repo smoke checks.
+
 ### Generator flags
 
 | Flag | Required | Default | Description |
