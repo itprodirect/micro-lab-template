@@ -6,18 +6,109 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CONFIG_PATH="$REPO_ROOT/config/languages.json"
 
 # shellcheck source=_lib.sh
 source "$SCRIPT_DIR/_lib.sh"
 
 LANG_FILTER="${1:-all}"
 
+manifest_python() {
+  if command -v python3 >/dev/null 2>&1; then
+    printf '%s\n' "python3"
+  elif command -v python >/dev/null 2>&1; then
+    printf '%s\n' "python"
+  else
+    die "python3 or python is required to read language manifest"
+  fi
+}
+
+manifest_query() {
+  local mode="$1"
+  local lang="${2:-}"
+  local key="${3:-}"
+  local python_bin
+
+  python_bin="$(manifest_python)"
+
+  "$python_bin" - "$CONFIG_PATH" "$mode" "$lang" "$key" <<'PY' | tr -d '\r'
+import json
+import sys
+
+config_path, mode, lang_id, key = sys.argv[1:5]
+
+with open(config_path, encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+languages = payload.get("languages", [])
+
+if mode == "languages":
+    for lang in languages:
+        print(lang["id"])
+    sys.exit(0)
+
+selected = next((lang for lang in languages if lang.get("id") == lang_id), None)
+if selected is None:
+    print(f"Language not found in manifest: {lang_id}", file=sys.stderr)
+    sys.exit(2)
+
+if mode == "field":
+    print(selected[key])
+elif mode == "toolchains":
+    for toolchain in selected["toolchains"]:
+        print(toolchain)
+elif mode == "command":
+    print(selected["commands"][key])
+else:
+    print(f"Unknown manifest query mode: {mode}", file=sys.stderr)
+    sys.exit(2)
+PY
+}
+
+manifest_languages() {
+  manifest_query languages
+}
+
+manifest_language_field() {
+  manifest_query field "$1" "$2"
+}
+
+manifest_language_toolchains() {
+  manifest_query toolchains "$1"
+}
+
+manifest_language_command() {
+  manifest_query command "$1" "$2"
+}
+
+supported_languages_display() {
+  local language_list="$1"
+  local supported=""
+  local lang
+
+  while IFS= read -r lang; do
+    [[ -n "$lang" ]] || continue
+    if [[ -n "$supported" ]]; then
+      supported+=", "
+    fi
+    supported+="$lang"
+  done <<< "$language_list"
+
+  printf '%s' "$supported"
+}
+
 if [[ "$LANG_FILTER" == "all" ]]; then
   info "micro-lab-template selftest"
   info ""
+
+  language_list="$(manifest_languages)" || die "Unable to read supported languages from $CONFIG_PATH"
+  [[ -n "$language_list" ]] || die "No languages configured in $CONFIG_PATH"
+
   overall_status=0
-  bash "$SCRIPT_DIR/selftest.sh" go || overall_status=1
-  bash "$SCRIPT_DIR/selftest.sh" rust || overall_status=1
+  while IFS= read -r lang; do
+    [[ -n "$lang" ]] || continue
+    bash "$SCRIPT_DIR/selftest.sh" "$lang" || overall_status=1
+  done <<< "$language_list"
   exit "$overall_status"
 fi
 
@@ -54,8 +145,15 @@ validate_language_manifest() {
 
 check_template_artifacts() {
   local lang="$1"
-  local tpl="$REPO_ROOT/templates/$lang"
+  local template_dir
+  local tpl
   local artifact_matches
+
+  template_dir="$(manifest_language_field "$lang" template_dir)" || {
+    fail "$lang: template path missing from manifest"
+    return
+  }
+  tpl="$REPO_ROOT/$template_dir"
 
   artifact_matches="$(find "$tpl" -type d \( \
     -name target -o \
@@ -76,73 +174,131 @@ check_template_artifacts() {
 
 # -- Template checks --------------------------------------------------------
 
-test_rust_template() {
-  info "=== Testing Rust template ==="
+command_label() {
+  local command="$1"
+  local first="${command%% *}"
+  local rest="${command#"$first"}"
+  local second
 
-  local tpl="$REPO_ROOT/templates/rust"
-  local cargo_target_dir="$REPO_ROOT/out/selftest-rust-target"
+  rest="${rest#"${rest%%[![:space:]]*}"}"
 
-  CLEANUP_DIRS+=("$cargo_target_dir")
-  mkdir -p "$REPO_ROOT/out"
-
-  if ! command -v cargo >/dev/null 2>&1; then
-    fail "rust: cargo not found on PATH"
+  if [[ -z "$rest" || "$rest" == -* ]]; then
+    printf '%s' "$first"
     return
   fi
 
-  # Format check
-  if (cd "$tpl" && cargo fmt --all -- --check) >/dev/null 2>&1; then
-    pass "rust: cargo fmt"
-  else
-    fail "rust: cargo fmt"
-  fi
+  second="${rest%% *}"
+  printf '%s %s' "$first" "$second"
+}
 
-  # Lint check
-  if (cd "$tpl" && CARGO_TARGET_DIR="$cargo_target_dir" cargo clippy -- -D warnings) >/dev/null 2>&1; then
-    pass "rust: cargo clippy"
-  else
-    fail "rust: cargo clippy"
-  fi
+language_title() {
+  local lang="$1"
+  local first="${lang%"${lang#?}"}"
+  local rest="${lang#?}"
 
-  # Tests
-  if (cd "$tpl" && CARGO_TARGET_DIR="$cargo_target_dir" cargo test --workspace) >/dev/null 2>&1; then
-    pass "rust: cargo test"
+  printf '%s%s' "$(printf '%s' "$first" | tr '[:lower:]' '[:upper:]')" "$rest"
+}
+
+check_language_toolchains() {
+  local lang="$1"
+  local context="$2"
+  local toolchains
+  local toolchain
+  local missing=0
+
+  toolchains="$(manifest_language_toolchains "$lang")" || {
+    fail "$context: toolchains missing from manifest"
+    return 1
+  }
+
+  while IFS= read -r toolchain; do
+    [[ -n "$toolchain" ]] || continue
+    if ! command -v "$toolchain" >/dev/null 2>&1; then
+      fail "$context: $toolchain not found on PATH"
+      missing=1
+    fi
+  done <<< "$toolchains"
+
+  [[ "$missing" -eq 0 ]]
+}
+
+run_manifest_command() {
+  local dir="$1"
+  local command="$2"
+  local cargo_target_dir="${3:-}"
+
+  if [[ -n "$cargo_target_dir" && "$command" == cargo\ * ]]; then
+    (cd "$dir" && CARGO_TARGET_DIR="$cargo_target_dir" bash -c "$command")
   else
-    fail "rust: cargo test"
+    (cd "$dir" && bash -c "$command")
   fi
 }
 
-test_go_template() {
-  info "=== Testing Go template ==="
+test_language_template() {
+  local lang="$1"
+  local template_dir
+  local tpl
+  local format_cmd
+  local lint_cmd
+  local test_cmd
+  local cargo_target_dir=""
+  local label
+  local format_output
 
-  local tpl="$REPO_ROOT/templates/go"
+  info "=== Testing $(language_title "$lang") template ==="
 
-  if ! command -v go >/dev/null 2>&1; then
-    fail "go: go not found on PATH"
+  template_dir="$(manifest_language_field "$lang" template_dir)" || {
+    fail "$lang: template path missing from manifest"
+    return
+  }
+  tpl="$REPO_ROOT/$template_dir"
+
+  format_cmd="$(manifest_language_command "$lang" format_check)" || {
+    fail "$lang: format command missing from manifest"
+    return
+  }
+  lint_cmd="$(manifest_language_command "$lang" lint)" || {
+    fail "$lang: lint command missing from manifest"
+    return
+  }
+  test_cmd="$(manifest_language_command "$lang" test)" || {
+    fail "$lang: test command missing from manifest"
+    return
+  }
+
+  if ! check_language_toolchains "$lang" "$lang"; then
     return
   fi
 
-  # Format check
-  local unformatted
-  unformatted="$(cd "$tpl" && gofmt -l .)"
-  if [[ -z "$unformatted" ]]; then
-    pass "go: gofmt"
-  else
-    fail "go: gofmt (unformatted: $unformatted)"
+  if [[ "$lang" == "rust" ]]; then
+    cargo_target_dir="$REPO_ROOT/out/selftest-rust-target"
+    CLEANUP_DIRS+=("$cargo_target_dir")
+    mkdir -p "$REPO_ROOT/out"
   fi
 
-  # Lint check
-  if (cd "$tpl" && go vet ./...) >/dev/null 2>&1; then
-    pass "go: go vet"
+  label="$(command_label "$format_cmd")"
+  if format_output="$(run_manifest_command "$tpl" "$format_cmd" "$cargo_target_dir" 2>&1)"; then
+    if [[ -z "$format_output" ]]; then
+      pass "$lang: $label"
+    else
+      fail "$lang: $label (unformatted: $format_output)"
+    fi
   else
-    fail "go: go vet"
+    fail "$lang: $label"
   fi
 
-  # Tests
-  if (cd "$tpl" && go test ./...) >/dev/null 2>&1; then
-    pass "go: go test"
+  label="$(command_label "$lint_cmd")"
+  if run_manifest_command "$tpl" "$lint_cmd" "$cargo_target_dir" >/dev/null 2>&1; then
+    pass "$lang: $label"
   else
-    fail "go: go test"
+    fail "$lang: $label"
+  fi
+
+  label="$(command_label "$test_cmd")"
+  if run_manifest_command "$tpl" "$test_cmd" "$cargo_target_dir" >/dev/null 2>&1; then
+    pass "$lang: $label"
+  else
+    fail "$lang: $label"
   fi
 }
 
@@ -165,10 +321,18 @@ test_generator() {
   local lang="$1"
   local name="selftest-${lang}"
   local out_dir="$REPO_ROOT/out/$name"
+  local generated_test_cmd
+  local generated_test_label
 
   info "=== Testing generator: $lang ==="
 
   CLEANUP_DIRS+=("$out_dir")
+
+  generated_test_cmd="$(manifest_language_command "$lang" test)" || {
+    fail "generator($lang): test command missing from manifest"
+    return
+  }
+  generated_test_label="$(command_label "$generated_test_cmd")"
 
   # Generate
   if ! bash "$SCRIPT_DIR/new-repo.sh" --lang "$lang" --name "$name" --org selftestorg --no-git >/dev/null 2>&1; then
@@ -247,14 +411,12 @@ test_generator() {
         fail "generator(rust): Rust security tooling missing"
       fi
 
-      if command -v cargo >/dev/null 2>&1; then
-        if (cd "$out_dir" && cargo test --workspace) >/dev/null 2>&1; then
-          pass "generator(rust): cargo test passes"
+      if check_language_toolchains "$lang" "generator($lang)"; then
+        if run_manifest_command "$out_dir" "$generated_test_cmd" >/dev/null 2>&1; then
+          pass "generator(rust): $generated_test_label passes"
         else
-          fail "generator(rust): cargo test failed"
+          fail "generator(rust): $generated_test_label failed"
         fi
-      else
-        fail "generator(rust): cargo not found on PATH"
       fi
       ;;
     go)
@@ -265,14 +427,12 @@ test_generator() {
         fail "generator(go): Go security tooling missing"
       fi
 
-      if command -v go >/dev/null 2>&1; then
-        if (cd "$out_dir" && go test ./...) >/dev/null 2>&1; then
-          pass "generator(go): go test passes"
+      if check_language_toolchains "$lang" "generator($lang)"; then
+        if run_manifest_command "$out_dir" "$generated_test_cmd" >/dev/null 2>&1; then
+          pass "generator(go): $generated_test_label passes"
         else
-          fail "generator(go): go test failed"
+          fail "generator(go): $generated_test_label failed"
         fi
-      else
-        fail "generator(go): go not found on PATH"
       fi
       ;;
   esac
@@ -283,25 +443,18 @@ test_generator() {
 info "micro-lab-template selftest"
 info ""
 
-case "$LANG_FILTER" in
-  rust)
-    validate_language_manifest
-    check_template_artifacts rust
-    test_rust_template
-    test_generator_dry_run rust
-    test_generator rust
-    ;;
-  go)
-    validate_language_manifest
-    check_template_artifacts go
-    test_go_template
-    test_generator_dry_run go
-    test_generator go
-    ;;
-  *)
-    die "Unknown language: $LANG_FILTER (supported: rust, go, all)"
-    ;;
-esac
+language_list="$(manifest_languages)" || die "Unable to read supported languages from $CONFIG_PATH"
+supported_languages="$(supported_languages_display "$language_list")"
+
+if ! grep -Fxq "$LANG_FILTER" <<< "$language_list"; then
+  die "Unknown language: $LANG_FILTER (supported: $supported_languages, all)"
+fi
+
+validate_language_manifest
+check_template_artifacts "$LANG_FILTER"
+test_language_template "$LANG_FILTER"
+test_generator_dry_run "$LANG_FILTER"
+test_generator "$LANG_FILTER"
 
 info ""
 info "Results: $PASS_COUNT passed, $FAIL_COUNT failed"

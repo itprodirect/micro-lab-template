@@ -64,6 +64,12 @@
    - every referenced template path exists
 5. Define generated-repo CI template(s) under `templates/_shared/.github/workflows/` and test through generator smoke tests.
 
+### Current Status
+
+- `config/languages.json` exists and is validated by `scripts/validate-language-config.sh`.
+- `scripts/selftest.sh` reads Go/Rust template format, lint, and test commands from the manifest.
+- `scripts/new-repo.sh` command placeholder population is not yet manifest-driven.
+
 ### Done Criteria
 
 1. Language command changes are made once in the manifest.
