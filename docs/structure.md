@@ -11,8 +11,8 @@ micro-lab-template/
 │
 ├── README.md                    # What this is, how to use it
 ├── LICENSE                      # MIT
-├── AGENTS.md                    # How AI agents should behave here
-├── TASKS.md                     # Historical/reference implementation checklist
+├── AGENTS.md                    # Canonical AI agent guide
+├── CLAUDE.md                    # Claude-specific entry point
 ├── CONTRIBUTING.md              # How to contribute (for humans)
 ├── CHANGELOG.md                 # Template-level version history
 ├── SESSION_LOG.md               # Decisions, friction, learnings
@@ -22,15 +22,25 @@ micro-lab-template/
 ├── .gitignore                   # Template repo ignores
 │
 ├── docs/
+│   ├── AGENTS.md                # Compatibility pointer to root AGENTS.md
+│   ├── canonical.md             # Current workflow, CI, and branch policy
+│   ├── v2-roadmap.md            # Active improvement plan
 │   ├── block-contract.md        # THE contract every block must follow
 │   ├── structure.md             # This file
 │   ├── principles.md            # Design philosophy
 │   ├── ci-and-security.md       # CI pipeline and security defaults
+│   ├── TASKS.md                 # Historical/reference implementation checklist
+│   ├── codex-goals/             # Reusable Codex /goal prompts
 │   └── claude-review.md         # Gap analysis from Claude (reference)
+│
+├── config/
+│   └── languages.json           # Source of truth for language behavior
 │
 ├── scripts/
 │   ├── new-repo.sh              # Generator: scaffold a new repo from template
 │   ├── selftest.sh              # Run lint/test across all templates
+│   ├── validate-language-config.sh
+│   ├── check-line-endings.sh
 │   ├── setup-hooks.sh           # Install git pre-commit hooks
 │   └── _lib.sh                  # Shared bash functions
 │
@@ -48,23 +58,20 @@ micro-lab-template/
 │   │       └── dependabot.yml
 │   │
 │   ├── rust/                    # Rust template skeleton
-│   ├── go/                      # Go template skeleton
-│   ├── python/                  # Python template skeleton
-│   └── ts/                      # TypeScript template skeleton
+│   └── go/                      # Go template skeleton
 │
 └── .github/
-    ├── workflows/
-    │   ├── ci-selftest.yml      # Tests selftest.sh on push/PR
-    │   ├── ci-templates.yml     # Matrix: test each language template
-    │   └── ci-generator.yml     # Test the generator produces valid repos
-    └── dependabot.yml           # Dependabot for this template repo
+    └── workflows/
+        ├── ci.yml               # Linux/Windows selftest jobs
+        ├── security.yml         # Secret and dependency scanning
+        └── dependabot-automerge.yml
 ```
 
 ---
 
 ## Generated repo structure (what `new-repo.sh` produces)
 
-Every generated repo follows the same shape, adapted to the language. Here are the four supported layouts:
+Every generated repo follows the same shape, adapted to the language. Current generated layouts are Rust and Go. Python and TypeScript are deferred until their scope is explicitly reopened.
 
 ### Rust
 
@@ -127,7 +134,9 @@ my-go-repo/
         └── main.go              # Lab: CLI that composes blocks
 ```
 
-### Python
+### Deferred Python Layout
+
+This layout is reference material only. The generator does not currently support Python.
 
 ```
 my-python-repo/
@@ -157,7 +166,9 @@ my-python-repo/
     └── test_blocks.py
 ```
 
-### TypeScript
+### Deferred TypeScript Layout
+
+This layout is reference material only. The generator does not currently support TypeScript.
 
 ```
 my-ts-repo/
@@ -204,6 +215,8 @@ my-ts-repo/
 
 The generator (`scripts/new-repo.sh`) replaces these placeholders during scaffolding:
 
+Language-specific placeholder values come from `config/languages.json`: `commands.test`, `commands.run`, `paths.blocks`, and `paths.labs`. The manifest is also the source for supported language ids and template directories.
+
 | Placeholder | Replaced with | Example |
 |-------------|--------------|---------|
 | `__REPO_NAME__` | The `--name` argument | `rust-link-safety` |
@@ -224,5 +237,5 @@ The generator (`scripts/new-repo.sh`) replaces these placeholders during scaffol
 1. **Never create files outside this structure.** If a new file doesn't fit, the structure needs updating — not bypassing.
 2. **Blocks go in the blocks directory. Labs go in the labs directory.** No exceptions.
 3. **Shared files go in `templates/_shared/`.** Language-specific files go in `templates/<lang>/`.
-4. **Tests live next to the code they test** (Go, Rust) or in a top-level `tests/` directory (Python, TS).
+4. **Tests live next to the code they test** for current Go and Rust templates.
 5. **Every new file needs to work with the placeholder system.** If it contains the repo name, org, or year, use the placeholder.

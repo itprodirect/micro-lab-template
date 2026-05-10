@@ -67,8 +67,16 @@
 ### Current Status
 
 - `config/languages.json` exists and is validated by `scripts/validate-language-config.sh`.
-- `scripts/selftest.sh` reads Go/Rust template format, lint, and test commands from the manifest.
+- `scripts/selftest.sh` reads supported languages, template paths, toolchains, and Go/Rust format, lint, and test commands from the manifest.
 - `scripts/new-repo.sh` reads supported languages, template paths, generated test/run commands, and block/lab paths from the manifest.
+- Generated-repo CI and security workflow templates live under `templates/_shared/.github/workflows/` and are covered by generator smoke tests.
+- Current generated languages remain Go and Rust only; Python and TypeScript are deferred.
+
+### Next Candidates
+
+1. Decide how far docs snippets should go in avoiding duplicated manifest command strings.
+2. Extract a shared manifest-reader helper only if duplication between Bash scripts becomes painful.
+3. Start Phase 3 release/versioning work: compatibility policy, changelog rules, and generated-repo upgrade guidance.
 
 ### Done Criteria
 

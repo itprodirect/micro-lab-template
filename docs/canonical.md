@@ -17,6 +17,10 @@ Direct template checks (when you need language-specific debugging):
 - Use `commands.format_check`, `commands.lint`, and `commands.test` from `config/languages.json`.
 - Current language templates are Go (`templates/go`) and Rust (`templates/rust`).
 
+## Generator Source of Truth
+
+`scripts/new-repo.sh` reads supported language ids, template directories, generated test/run commands, and generated block/lab paths from `config/languages.json`. The generator still handles repo-specific placeholders such as repo name, org, year, package name, module path, and template version directly.
+
 ## CI Source of Truth
 
 - Workflow file: `.github/workflows/ci.yml`

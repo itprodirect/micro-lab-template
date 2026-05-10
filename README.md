@@ -18,6 +18,20 @@ Each generated repo comes with:
 | Rust     | v0.1   | `templates/rust/` |
 | Go       | v0.1   | `templates/go/` |
 
+Python and TypeScript templates are still deferred. Do not add or document them as generated outputs until that scope is explicitly reopened.
+
+## Language manifest
+
+`config/languages.json` is the source of truth for language-specific behavior:
+
+- supported language ids
+- template directories
+- required toolchains
+- format, lint, test, and run commands
+- generated block and lab paths
+
+Both `scripts/selftest.sh` and `scripts/new-repo.sh` read this manifest. Update the manifest first when language commands or generated path placeholders need to change.
+
 ## Quick start
 
 ```bash
@@ -42,8 +56,7 @@ bash scripts/check-line-endings.sh
 
 Direct template checks (without generator smoke tests):
 
-- `templates/go`: `gofmt -l .`, `go vet ./...`, `go test ./...`
-- `templates/rust`: `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
+- Use `commands.format_check`, `commands.lint`, and `commands.test` from `config/languages.json`.
 
 The canonical selftest also validates `config/languages.json`, rejects build artifact directories under language templates, and runs generator dry-run plus generated-repo smoke checks.
 
@@ -51,7 +64,7 @@ The canonical selftest also validates `config/languages.json`, rejects build art
 
 | Flag | Required | Default | Description |
 |------|----------|---------|-------------|
-| `--lang` | yes | — | `rust` or `go` |
+| `--lang` | yes | — | Language id from `config/languages.json` (`go` or `rust`) |
 | `--name` | yes | — | Repo name (kebab-case) |
 | `--org` | no | `itprodirect` | GitHub org/owner |
 | `--dry-run` | no | — | Preview output without creating files |
@@ -73,6 +86,7 @@ Blocks are small, reusable, tested library modules that follow a strict [block c
 ## Docs
 
 - [Agent guide](AGENTS.md) - canonical operating contract for AI agents
+- [Language manifest](config/languages.json) - source of truth for supported language behavior
 - [Codex goal pack](docs/codex-goals/) - reusable `/goal` prompts for common repo work
 - [Block contract](docs/block-contract.md) — the 6 rules every block must follow
 - [Repo structure](docs/structure.md) — folder conventions and placeholder reference
