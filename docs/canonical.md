@@ -34,6 +34,13 @@ Direct template checks (when you need language-specific debugging):
 - Historical implementation checklist: `docs/TASKS.md`
 - `docs/TASKS.md` is reference material, not the day-to-day execution source for new work
 
+## Agent Operations Source of Truth
+
+- Canonical agent guide: `AGENTS.md`
+- Legacy pointer only: `docs/AGENTS.md`
+- Claude-specific entry point: `CLAUDE.md`
+- Reusable Codex goal prompts: `docs/codex-goals/`
+
 ## Dependabot Auto-Merge Policy
 
 - Workflow: `.github/workflows/dependabot-automerge.yml`
@@ -49,3 +56,5 @@ If workflow behavior changes, update these files in the same PR:
 2. `README.md`
 3. `CONTRIBUTING.md`
 4. `docs/ci-and-security.md`
+
+If agent operating guidance changes, update `AGENTS.md` first and keep `CLAUDE.md`, `docs/AGENTS.md`, and `README.md` references aligned.
