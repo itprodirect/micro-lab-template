@@ -4,6 +4,33 @@ Running record of decisions, friction, and follow-up work for `micro-lab-templat
 
 Newest entries go at the top.
 
+## 2026-05-10 - Selftest Robustness Polish
+
+### Goal
+
+Polish issue #26 follow-up items from the manifest-driven selftest refactor without changing generator or template behavior.
+
+### Decisions
+
+| Decision | Rationale |
+|---|---|
+| Format checks now use command-specific semantics. | `gofmt -l` still fails on non-empty output; other format commands such as `cargo fmt --all -- --check` rely on exit status. |
+| Selftest result labels print full manifest commands. | Avoids brittle command-shortening heuristics and makes the manifest source of truth visible in output. |
+| Each language selftest loads its manifest config in one Python subprocess. | Keeps Bash readable while avoiding repeated field-by-field JSON lookups. |
+| Manifest command execution rejects multiline commands before `bash -c`. | Keeps current shell-command execution simple while avoiding surprising newline behavior. |
+| `docs/canonical.md` points direct language checks to `config/languages.json`. | Prevents command guidance from drifting from the manifest. |
+
+### Validation
+
+- `bash scripts/check-line-endings.sh` passed.
+- `bash scripts/validate-language-config.sh` passed.
+- `bash scripts/selftest.sh all` passed.
+- `bash scripts/selftest.sh go` passed.
+- `bash scripts/selftest.sh rust` passed.
+- `bash scripts/selftest.sh nope` failed clearly with the supported language list.
+- `git diff --check` passed.
+- `git status --short` reviewed.
+
 ## 2026-05-10 - Manifest-Driven Selftest
 
 ### Goal

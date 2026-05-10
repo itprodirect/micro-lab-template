@@ -12,6 +12,11 @@ CONFIG_PATH="$REPO_ROOT/config/languages.json"
 source "$SCRIPT_DIR/_lib.sh"
 
 LANG_FILTER="${1:-all}"
+LANG_TEMPLATE_DIR=""
+LANG_FORMAT_CHECK_CMD=""
+LANG_LINT_CMD=""
+LANG_TEST_CMD=""
+LANG_TOOLCHAINS=()
 
 manifest_python() {
   if command -v python3 >/dev/null 2>&1; then
@@ -26,16 +31,15 @@ manifest_python() {
 manifest_query() {
   local mode="$1"
   local lang="${2:-}"
-  local key="${3:-}"
   local python_bin
 
   python_bin="$(manifest_python)"
 
-  "$python_bin" - "$CONFIG_PATH" "$mode" "$lang" "$key" <<'PY' | tr -d '\r'
+  "$python_bin" - "$CONFIG_PATH" "$mode" "$lang" <<'PY' | tr -d '\r'
 import json
 import sys
 
-config_path, mode, lang_id, key = sys.argv[1:5]
+config_path, mode, lang_id = sys.argv[1:4]
 
 with open(config_path, encoding="utf-8") as handle:
     payload = json.load(handle)
@@ -52,13 +56,13 @@ if selected is None:
     print(f"Language not found in manifest: {lang_id}", file=sys.stderr)
     sys.exit(2)
 
-if mode == "field":
-    print(selected[key])
-elif mode == "toolchains":
+if mode == "language":
+    print(f"template_dir={selected['template_dir']}")
     for toolchain in selected["toolchains"]:
-        print(toolchain)
-elif mode == "command":
-    print(selected["commands"][key])
+        print(f"toolchain={toolchain}")
+    commands = selected["commands"]
+    for command_key in ("format_check", "lint", "test"):
+        print(f"{command_key}={commands[command_key]}")
 else:
     print(f"Unknown manifest query mode: {mode}", file=sys.stderr)
     sys.exit(2)
@@ -69,16 +73,41 @@ manifest_languages() {
   manifest_query languages
 }
 
-manifest_language_field() {
-  manifest_query field "$1" "$2"
-}
+load_language_config() {
+  local lang="$1"
+  local manifest_output
+  local line
+  local key
+  local value
 
-manifest_language_toolchains() {
-  manifest_query toolchains "$1"
-}
+  LANG_TEMPLATE_DIR=""
+  LANG_FORMAT_CHECK_CMD=""
+  LANG_LINT_CMD=""
+  LANG_TEST_CMD=""
+  LANG_TOOLCHAINS=()
 
-manifest_language_command() {
-  manifest_query command "$1" "$2"
+  manifest_output="$(manifest_query language "$lang")" || return 1
+
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    key="${line%%=*}"
+    value="${line#*=}"
+
+    case "$key" in
+      template_dir) LANG_TEMPLATE_DIR="$value" ;;
+      toolchain) LANG_TOOLCHAINS+=("$value") ;;
+      format_check) LANG_FORMAT_CHECK_CMD="$value" ;;
+      lint) LANG_LINT_CMD="$value" ;;
+      test) LANG_TEST_CMD="$value" ;;
+      *) return 1 ;;
+    esac
+  done <<< "$manifest_output"
+
+  [[ -n "$LANG_TEMPLATE_DIR" \
+    && -n "$LANG_FORMAT_CHECK_CMD" \
+    && -n "$LANG_LINT_CMD" \
+    && -n "$LANG_TEST_CMD" \
+    && "${#LANG_TOOLCHAINS[@]}" -gt 0 ]]
 }
 
 supported_languages_display() {
@@ -145,15 +174,10 @@ validate_language_manifest() {
 
 check_template_artifacts() {
   local lang="$1"
-  local template_dir
   local tpl
   local artifact_matches
 
-  template_dir="$(manifest_language_field "$lang" template_dir)" || {
-    fail "$lang: template path missing from manifest"
-    return
-  }
-  tpl="$REPO_ROOT/$template_dir"
+  tpl="$REPO_ROOT/$LANG_TEMPLATE_DIR"
 
   artifact_matches="$(find "$tpl" -type d \( \
     -name target -o \
@@ -174,23 +198,6 @@ check_template_artifacts() {
 
 # -- Template checks --------------------------------------------------------
 
-command_label() {
-  local command="$1"
-  local first="${command%% *}"
-  local rest="${command#"$first"}"
-  local second
-
-  rest="${rest#"${rest%%[![:space:]]*}"}"
-
-  if [[ -z "$rest" || "$rest" == -* ]]; then
-    printf '%s' "$first"
-    return
-  fi
-
-  second="${rest%% *}"
-  printf '%s %s' "$first" "$second"
-}
-
 language_title() {
   local lang="$1"
   local first="${lang%"${lang#?}"}"
@@ -202,22 +209,16 @@ language_title() {
 check_language_toolchains() {
   local lang="$1"
   local context="$2"
-  local toolchains
   local toolchain
   local missing=0
 
-  toolchains="$(manifest_language_toolchains "$lang")" || {
-    fail "$context: toolchains missing from manifest"
-    return 1
-  }
-
-  while IFS= read -r toolchain; do
+  for toolchain in "${LANG_TOOLCHAINS[@]}"; do
     [[ -n "$toolchain" ]] || continue
     if ! command -v "$toolchain" >/dev/null 2>&1; then
       fail "$context: $toolchain not found on PATH"
       missing=1
     fi
-  done <<< "$toolchains"
+  done
 
   [[ "$missing" -eq 0 ]]
 }
@@ -227,6 +228,10 @@ run_manifest_command() {
   local command="$2"
   local cargo_target_dir="${3:-}"
 
+  case "$command" in
+    *$'\n'*|*$'\r'*) return 2 ;;
+  esac
+
   if [[ -n "$cargo_target_dir" && "$command" == cargo\ * ]]; then
     (cd "$dir" && CARGO_TARGET_DIR="$cargo_target_dir" bash -c "$command")
   else
@@ -234,37 +239,43 @@ run_manifest_command() {
   fi
 }
 
+run_format_check() {
+  local lang="$1"
+  local tpl="$2"
+  local command="$3"
+  local cargo_target_dir="${4:-}"
+  local format_output
+
+  case "$command" in
+    gofmt\ -l|gofmt\ -l\ *)
+      if format_output="$(run_manifest_command "$tpl" "$command" "$cargo_target_dir" 2>/dev/null)"; then
+        if [[ -z "$format_output" ]]; then
+          pass "$lang: $command"
+        else
+          fail "$lang: $command (unformatted: $format_output)"
+        fi
+      else
+        fail "$lang: $command"
+      fi
+      ;;
+    *)
+      if run_manifest_command "$tpl" "$command" "$cargo_target_dir" >/dev/null 2>&1; then
+        pass "$lang: $command"
+      else
+        fail "$lang: $command"
+      fi
+      ;;
+  esac
+}
+
 test_language_template() {
   local lang="$1"
-  local template_dir
   local tpl
-  local format_cmd
-  local lint_cmd
-  local test_cmd
   local cargo_target_dir=""
-  local label
-  local format_output
 
   info "=== Testing $(language_title "$lang") template ==="
 
-  template_dir="$(manifest_language_field "$lang" template_dir)" || {
-    fail "$lang: template path missing from manifest"
-    return
-  }
-  tpl="$REPO_ROOT/$template_dir"
-
-  format_cmd="$(manifest_language_command "$lang" format_check)" || {
-    fail "$lang: format command missing from manifest"
-    return
-  }
-  lint_cmd="$(manifest_language_command "$lang" lint)" || {
-    fail "$lang: lint command missing from manifest"
-    return
-  }
-  test_cmd="$(manifest_language_command "$lang" test)" || {
-    fail "$lang: test command missing from manifest"
-    return
-  }
+  tpl="$REPO_ROOT/$LANG_TEMPLATE_DIR"
 
   if ! check_language_toolchains "$lang" "$lang"; then
     return
@@ -276,29 +287,18 @@ test_language_template() {
     mkdir -p "$REPO_ROOT/out"
   fi
 
-  label="$(command_label "$format_cmd")"
-  if format_output="$(run_manifest_command "$tpl" "$format_cmd" "$cargo_target_dir" 2>&1)"; then
-    if [[ -z "$format_output" ]]; then
-      pass "$lang: $label"
-    else
-      fail "$lang: $label (unformatted: $format_output)"
-    fi
+  run_format_check "$lang" "$tpl" "$LANG_FORMAT_CHECK_CMD" "$cargo_target_dir"
+
+  if run_manifest_command "$tpl" "$LANG_LINT_CMD" "$cargo_target_dir" >/dev/null 2>&1; then
+    pass "$lang: $LANG_LINT_CMD"
   else
-    fail "$lang: $label"
+    fail "$lang: $LANG_LINT_CMD"
   fi
 
-  label="$(command_label "$lint_cmd")"
-  if run_manifest_command "$tpl" "$lint_cmd" "$cargo_target_dir" >/dev/null 2>&1; then
-    pass "$lang: $label"
+  if run_manifest_command "$tpl" "$LANG_TEST_CMD" "$cargo_target_dir" >/dev/null 2>&1; then
+    pass "$lang: $LANG_TEST_CMD"
   else
-    fail "$lang: $label"
-  fi
-
-  label="$(command_label "$test_cmd")"
-  if run_manifest_command "$tpl" "$test_cmd" "$cargo_target_dir" >/dev/null 2>&1; then
-    pass "$lang: $label"
-  else
-    fail "$lang: $label"
+    fail "$lang: $LANG_TEST_CMD"
   fi
 }
 
@@ -321,18 +321,10 @@ test_generator() {
   local lang="$1"
   local name="selftest-${lang}"
   local out_dir="$REPO_ROOT/out/$name"
-  local generated_test_cmd
-  local generated_test_label
 
   info "=== Testing generator: $lang ==="
 
   CLEANUP_DIRS+=("$out_dir")
-
-  generated_test_cmd="$(manifest_language_command "$lang" test)" || {
-    fail "generator($lang): test command missing from manifest"
-    return
-  }
-  generated_test_label="$(command_label "$generated_test_cmd")"
 
   # Generate
   if ! bash "$SCRIPT_DIR/new-repo.sh" --lang "$lang" --name "$name" --org selftestorg --no-git >/dev/null 2>&1; then
@@ -412,10 +404,10 @@ test_generator() {
       fi
 
       if check_language_toolchains "$lang" "generator($lang)"; then
-        if run_manifest_command "$out_dir" "$generated_test_cmd" >/dev/null 2>&1; then
-          pass "generator(rust): $generated_test_label passes"
+        if run_manifest_command "$out_dir" "$LANG_TEST_CMD" >/dev/null 2>&1; then
+          pass "generator(rust): $LANG_TEST_CMD passes"
         else
-          fail "generator(rust): $generated_test_label failed"
+          fail "generator(rust): $LANG_TEST_CMD failed"
         fi
       fi
       ;;
@@ -428,10 +420,10 @@ test_generator() {
       fi
 
       if check_language_toolchains "$lang" "generator($lang)"; then
-        if run_manifest_command "$out_dir" "$generated_test_cmd" >/dev/null 2>&1; then
-          pass "generator(go): $generated_test_label passes"
+        if run_manifest_command "$out_dir" "$LANG_TEST_CMD" >/dev/null 2>&1; then
+          pass "generator(go): $LANG_TEST_CMD passes"
         else
-          fail "generator(go): $generated_test_label failed"
+          fail "generator(go): $LANG_TEST_CMD failed"
         fi
       fi
       ;;
@@ -451,10 +443,14 @@ if ! grep -Fxq "$LANG_FILTER" <<< "$language_list"; then
 fi
 
 validate_language_manifest
-check_template_artifacts "$LANG_FILTER"
-test_language_template "$LANG_FILTER"
-test_generator_dry_run "$LANG_FILTER"
-test_generator "$LANG_FILTER"
+if ! load_language_config "$LANG_FILTER"; then
+  fail "$LANG_FILTER: language configuration could not be loaded"
+else
+  check_template_artifacts "$LANG_FILTER"
+  test_language_template "$LANG_FILTER"
+  test_generator_dry_run "$LANG_FILTER"
+  test_generator "$LANG_FILTER"
+fi
 
 info ""
 info "Results: $PASS_COUNT passed, $FAIL_COUNT failed"

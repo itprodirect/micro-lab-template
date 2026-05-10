@@ -14,8 +14,8 @@ The canonical selftest also validates `config/languages.json`, rejects build art
 
 Direct template checks (when you need language-specific debugging):
 
-- Go (`templates/go`): `gofmt -l .`, `go vet ./...`, `go test ./...`
-- Rust (`templates/rust`): `cargo fmt --all -- --check`, `cargo clippy -- -D warnings`, `cargo test --workspace`
+- Use `commands.format_check`, `commands.lint`, and `commands.test` from `config/languages.json`.
+- Current language templates are Go (`templates/go`) and Rust (`templates/rust`).
 
 ## CI Source of Truth
 
