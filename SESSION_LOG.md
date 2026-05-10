@@ -4,6 +4,27 @@ Running record of decisions, friction, and follow-up work for `micro-lab-templat
 
 Newest entries go at the top.
 
+## 2026-05-10 - Template Hygiene Guardrails
+
+### Goal
+
+Prevent generated build output from being mistaken for template source, and make selftest cover generator dry-runs directly.
+
+### Decisions
+
+| Decision | Rationale |
+|---|---|
+| `scripts/selftest.sh` fails when language templates contain build artifact directories. | Artifacts like `templates/rust/target/` make dry-run output noisy and can confuse future generator work. |
+| Rust template checks use `out/selftest-rust-target` as `CARGO_TARGET_DIR`. | Keeps Cargo validation from recreating `templates/rust/target/` while preserving the existing Rust checks. |
+| `scripts/validate-language-config.sh` keeps a narrow embedded-Python exception. | JSON validation is safer in Python than ad hoc Bash parsing; the generator and template behavior remain Bash-only. |
+
+### Validation
+
+- `bash scripts/check-line-endings.sh` passed.
+- `bash scripts/selftest.sh all` passed.
+- Go and Rust generator dry-run smoke checks passed.
+- `git diff --check` passed.
+
 ## 2026-05-10 - Agent Operations Layer
 
 ### Goal

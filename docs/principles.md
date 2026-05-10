@@ -34,7 +34,7 @@ The template repo itself, the generator, the CI — these should use the most bo
 
 The generated repos are where you experiment with Mojo, Zig, Elixir, WASM. The scaffolding that creates those repos should never be the thing that breaks.
 
-**In practice:** `scripts/new-repo.sh` is bash. `selftest.sh` is bash. CI uses official GitHub Actions. Templates use standard build tools for each language.
+**In practice:** `scripts/new-repo.sh` and `selftest.sh` are bash. The only current Python exception is embedded JSON validation in `scripts/validate-language-config.sh`; do not extend it to generators or templates. CI uses official GitHub Actions. Templates use standard build tools for each language.
 
 ---
 

@@ -35,6 +35,7 @@ This is a **template generator**. The `templates/` directory contains skeletons 
 5. Read `docs/TASKS.md` only as historical/reference context.
 6. Run `bash scripts/selftest.sh all` before submitting a PR.
 7. Use conventional commits: `feat(scope): message`, `fix(scope): message`.
+8. Do not leave build artifacts under `templates/<lang>/`; selftest fails on `target/`, `bin/`, `node_modules/`, `__pycache__/`, `dist/`, and `build/`.
 
 Optional but recommended: run `bash scripts/setup-hooks.sh` once per clone to install a pre-commit hook that runs the canonical check locally.
 

@@ -1,6 +1,7 @@
 # Session Log
 
 > A running record of decisions, friction, and learnings. Agents and humans both write here. Newest entries at the top.
+> Historical note: current repo logging now happens in root `SESSION_LOG.md`; Session 001's bash-only decision is superseded by the narrow embedded-Python JSON validation exception documented in `CLAUDE.md` and `docs/principles.md`.
 
 ---
 
