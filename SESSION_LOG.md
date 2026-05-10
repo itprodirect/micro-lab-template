@@ -4,6 +4,33 @@ Running record of decisions, friction, and follow-up work for `micro-lab-templat
 
 Newest entries go at the top.
 
+## 2026-05-10 - Manifest-Driven Selftest
+
+### Goal
+
+Make `scripts/selftest.sh` read language check commands from `config/languages.json` while preserving current Go and Rust selftest behavior.
+
+### Decisions
+
+| Decision | Rationale |
+|---|---|
+| `scripts/selftest.sh` reads language IDs, template paths, toolchains, and format/lint/test commands from `config/languages.json`. | Keeps selftest language checks aligned with the manifest without broadening this change into the generator. |
+| `scripts/new-repo.sh` remains unchanged. | This is an incremental selftest refactor; generator placeholder command population stays as separate Phase 2 work. |
+| Rust template checks still use `out/selftest-rust-target` for Cargo build output. | Preserves the existing artifact-directory guardrail for `templates/rust/`. |
+| The manifest schema did not change. | Existing `commands.format_check`, `commands.lint`, and `commands.test` keys were enough for selftest. |
+
+### Validation
+
+- `bash scripts/check-line-endings.sh` passed.
+- `bash scripts/validate-language-config.sh` passed.
+- `bash scripts/selftest.sh go` passed.
+- `bash scripts/selftest.sh rust` passed.
+- `bash scripts/selftest.sh all` passed.
+- `bash scripts/new-repo.sh --lang go --name codex-smoke-go --no-git --dry-run` passed.
+- `bash scripts/new-repo.sh --lang rust --name codex-smoke-rust --no-git --dry-run` passed.
+- `git diff --check` passed.
+- `git status --short` reviewed.
+
 ## 2026-05-10 - Template Hygiene Guardrails
 
 ### Goal
