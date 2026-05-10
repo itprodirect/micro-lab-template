@@ -37,6 +37,7 @@ bash scripts/new-repo.sh --lang rust --name my-repo --dry-run
 bash scripts/selftest.sh all      # canonical check: CI + local
 bash scripts/selftest.sh go       # Go template + generator (Go)
 bash scripts/selftest.sh rust     # Rust template + generator (Rust)
+bash scripts/check-line-endings.sh
 ```
 
 Direct template checks (without generator smoke tests):
@@ -69,8 +70,8 @@ Blocks are small, reusable, tested library modules that follow a strict [block c
 
 ## Docs
 
-- `docs/canonical.md` — current workflow and branch policy (`master`)
-- `docs/v2-roadmap.md` — active roadmap for ongoing work
+- [Agent guide](AGENTS.md) - canonical operating contract for AI agents
+- [Codex goal pack](docs/codex-goals/) - reusable `/goal` prompts for common repo work
 - [Block contract](docs/block-contract.md) — the 6 rules every block must follow
 - [Repo structure](docs/structure.md) — folder conventions and placeholder reference
 - [Design principles](docs/principles.md) — the philosophy behind this template

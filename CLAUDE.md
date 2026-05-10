@@ -1,80 +1,103 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file is the Claude Code entry point for this repository. Shared agent rules live in `AGENTS.md`.
 
 ## What This Repo Is
 
-A GitHub **template repository** and **generator** for creating multi-language "micro-lab" repos. Each generated repo follows the "portable blocks, not monoliths" architecture: small, tested, importable library modules (blocks) composed by application entrypoints (labs).
+A GitHub template repository and generator for creating multi-language micro-lab repos. Each generated repo follows the portable-blocks architecture: small, tested, importable library modules composed by application entrypoints called labs.
 
-Currently supports: **Rust** and **Go** templates. Python and TypeScript are deferred until CI+generator are proven.
+Currently supported templates: Rust and Go. Python and TypeScript are deferred until CI and generator behavior are proven.
 
-## Key Docs (read before changing anything)
+## Key Docs
 
-- `TASKS.md` — historical/reference implementation checklist (ordered, but archival only)
-- `docs/block-contract.md` — the 6 mandatory rules every block must satisfy
-- `docs/structure.md` — folder conventions and placeholder reference
-- `docs/ci-and-security.md` — CI architecture and security defaults
-- `docs/principles.md` — 10 design principles
-- `docs/claude-review.md` — gap analysis with recommendations
-- `AGENTS.md` — rules for AI agents operating in this repo
+- `AGENTS.md` - canonical rules for AI agents operating in this repo
+- `docs/canonical.md` - current workflow, CI source of truth, and branch policy
+- `docs/v2-roadmap.md` - active improvement plan
+- `docs/TASKS.md` - historical implementation checklist, not the active day-to-day plan
+- `docs/block-contract.md` - the 6 mandatory rules every block must satisfy
+- `docs/structure.md` - folder conventions and placeholder reference
+- `docs/ci-and-security.md` - CI architecture and security defaults
+- `docs/principles.md` - design principles
+- `docs/codex-goals/` - reusable Codex `/goal` prompts for common repo work
+- `docs/claude-review.md` - historical gap analysis and recommendations
 
-## Build & Test Commands
+## Build And Test Commands
 
 ### Template validation
+
 ```bash
-bash scripts/selftest.sh          # test all templates + generator
-bash scripts/selftest.sh rust     # test only rust template
-bash scripts/selftest.sh go       # test only go template
+bash scripts/selftest.sh all      # canonical check: all templates + generator
+bash scripts/selftest.sh rust     # test only Rust template
+bash scripts/selftest.sh go       # test only Go template
+bash scripts/check-line-endings.sh
 ```
 
-### Rust template (from templates/rust/)
+If `shellcheck` is installed:
+
 ```bash
-cargo fmt --all -- --check        # format check
-cargo clippy -- -D warnings       # lint (warnings-as-errors)
-cargo test --workspace            # run tests
+cd scripts
+shellcheck -x *.sh
 ```
 
-### Go template (from templates/go/)
+### Rust template
+
+Run from `templates/rust/`:
+
 ```bash
-gofmt -l .                        # format check (output must be empty)
-go vet ./...                      # lint
-go test ./...                     # run tests
+cargo fmt --all -- --check
+cargo clippy -- -D warnings
+cargo test --workspace
+```
+
+### Go template
+
+Run from `templates/go/`:
+
+```bash
+gofmt -l .
+go vet ./...
+go test ./...
 ```
 
 ### Generator
+
 ```bash
 bash scripts/new-repo.sh --lang rust --name my-repo --org myorg
-bash scripts/new-repo.sh --lang go --name my-repo --dry-run
+bash scripts/new-repo.sh --lang go --name my-repo --no-git --dry-run
 ```
 
 ## Architecture
 
-```
-templates/_shared/    → files every generated repo gets (any language)
-templates/rust/       → Rust workspace: crates/blocks/ + crates/lab_cli/
-templates/go/         → Go module: internal/blocks/ + cmd/lab-cli/
-scripts/new-repo.sh   → generator (merges _shared + lang, replaces placeholders)
-scripts/selftest.sh   → validates templates + generator output
-scripts/_lib.sh       → shared bash functions (sourced, not executed)
+```text
+templates/_shared/    -> files every generated repo gets
+templates/rust/       -> Rust workspace: crates/blocks/ + crates/lab_cli/
+templates/go/         -> Go module: internal/blocks/ + cmd/lab-cli/
+scripts/new-repo.sh   -> generator that merges shared + language templates
+scripts/selftest.sh   -> validates templates and generated output
+scripts/_lib.sh       -> shared bash functions, sourced by scripts
 ```
 
-### Block architecture (every generated repo)
-- **blocks/config** — loads config from env vars → .env → defaults
-- **blocks/logging** — structured logging (tracing/slog)
-- **blocks/errors** — typed error enums with context
-- **lab_cli** — composes all blocks into a working CLI
+Generated repos include:
 
-### Placeholder system
-The generator replaces these in all template files:
-`__REPO_NAME__`, `__ORG__`, `__YEAR__`, `__TEMPLATE_VERSION__`, `__MODULE_PATH__`, `__PKG__`, `__TEST_COMMAND__`, `__RUN_COMMAND__`, `__BLOCKS_DIR__`, `__LABS_DIR__`
+- `blocks/config` - loads configuration from env, local `.env`, and defaults
+- `blocks/logging` - structured logging
+- `blocks/errors` - typed error handling with context
+- `lab_cli` or `cmd/lab-cli` - sample lab that composes blocks
+
+## Placeholder System
+
+The generator replaces the template placeholders documented in `docs/structure.md`, including repo name, org, year, template version, module path, package name, command strings, block path, and lab path.
+
+Do not hardcode values that should come from that placeholder system.
 
 ## Conventions
 
-- **Commit messages:** conventional commits — `feat(scope): msg`, `fix(scope): msg`, `docs(scope): msg`
-- **Scripts:** bash only, `#!/usr/bin/env bash`, `set -euo pipefail`, no GNU-specific flags
-- **Line endings:** LF everywhere (enforced by .gitattributes)
-- **Cross-platform:** must work in Git Bash on Windows and GitHub Actions Ubuntu
-- **No symlinks** (Git Bash on Windows handles them poorly)
-- **Block code:** no `unwrap()`/`panic!()` in Rust blocks, no bare `fmt.Println` in Go blocks — use typed errors and structured logging
-- **CI actions:** pin by SHA with version comment, minimal permissions (`contents: read`)
-- **Dependencies:** minimal, pinned, documented
+- Commit messages use conventional commits: `feat(scope): msg`, `fix(scope): msg`, `docs(scope): msg`.
+- Scripts are bash only with `#!/usr/bin/env bash` and `set -euo pipefail`.
+- Line endings are LF everywhere.
+- Cross-platform support means Git Bash on Windows and GitHub Actions Ubuntu.
+- Do not add symlinks.
+- Rust block code avoids `unwrap()` and bare `panic!`.
+- Go block code avoids bare `fmt.Println`.
+- CI actions are pinned by SHA with version comments and minimal permissions.
+- Dependencies are minimal, pinned, and documented when non-obvious.
